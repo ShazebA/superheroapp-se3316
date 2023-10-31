@@ -13,3 +13,35 @@ function searchSuperheroes() {
             console.error('Error:', error);
         });
 }
+
+function createList() {
+    const listName = document.getElementById('listNameInput').value;
+    
+    fetch(`/list`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: listName })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        loadExistingLists();  // Refresh the list dropdown
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function loadExistingLists() {
+    fetch(`/lists`)
+        .then(response => response.json())
+        .then(data => {
+            const dropdown = document.getElementById('existingLists');
+            dropdown.innerHTML = data.map(name => `<option value="${name}">${name}</option>`).join('');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
