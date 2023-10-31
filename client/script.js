@@ -75,3 +75,27 @@ function deleteList() {
         console.error('Error:', error);
     });
 }
+
+function addHeroToList() {
+    const listName = document.getElementById('existingLists').value;
+    const heroId = document.getElementById('heroIdInput').value;
+
+    fetch(`/list/${listName}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ids: [heroId] })  // For simplicity, adding one hero at a time
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        loadList();  // Refresh the list content
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+window.onload = loadExistingLists;
+
