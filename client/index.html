@@ -4,19 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
     <title>Superhero App</title>
 </head>
 
 <body>
+
     <!-- Search form -->
-    <div>
-        <input type="text" id="searchInput" placeholder="Search Superheroes">
+    <div class="search-section">
+        <input type="text" id="searchInput" placeholder="Search Superheroes by Name">
         <button onclick="searchSuperheroes()">Search</button>
     </div>
-    
-    <!-- Display Results -->
-    <div id="results"></div>
-    
+
+    <!-- Display Search Results -->
+    <div id="results" class="results-section"></div>
+
+    <!-- Create and manage lists -->
+    <div class="list-section">
+        <h2>Manage Superhero Lists</h2>
+        <input type="text" id="listNameInput" placeholder="Enter List Name">
+        <button onclick="createList()">Create List</button>
+        
+        <h3>Existing Lists</h3>
+        <select id="existingLists"></select>
+        <button onclick="loadList()">Load List</button>
+        <button onclick="deleteList()">Delete List</button>
+        
+        <h3>Add Superheroes to List</h3>
+        <input type="text" id="heroIdInput" placeholder="Enter Superhero ID">
+        <button onclick="addHeroToList()">Add to List</button>
+        
+        <h3>List Contents</h3>
+        <div id="listContents" class="list-contents-section"></div>
+    </div>
+
     <!-- Scripts -->
     <script src="scripts.js"></script>
 </body>
