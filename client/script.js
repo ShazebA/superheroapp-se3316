@@ -45,3 +45,33 @@ function loadExistingLists() {
             console.error('Error:', error);
         });
 }
+
+function loadList() {
+    const listName = document.getElementById('existingLists').value;
+
+    fetch(`/list/${listName}/details`)
+        .then(response => response.json())
+        .then(data => {
+            const listContentDiv = document.getElementById('listContents');
+            listContentDiv.innerHTML = JSON.stringify(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+function deleteList() {
+    const listName = document.getElementById('existingLists').value;
+
+    fetch(`/list/${listName}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        loadExistingLists();  // Refresh the list dropdown
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
