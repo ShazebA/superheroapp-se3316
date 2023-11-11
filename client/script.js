@@ -1,5 +1,28 @@
+function validateInput(input) {
+    return input && input.trim().length > 0;
+}
+
+function validateHeroIds(input) {
+    if (!input || input.trim().length === 0) {
+        return false;
+    }
+
+    const ids = input.split(',');
+    for (let id of ids) {
+        id = id.trim();
+        if (!id.match(/^\d+$/)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function getSuperheroDetails() {
     const id = document.getElementById('superheroId').value;
+    if (!validateInput(id)) {
+        console.error('Invalid ID');
+        return;
+    }
     fetch(`/superheroID/${id}`)
       .then(response => response.json())
       .then(hero => {
@@ -29,6 +52,10 @@ function getSuperheroDetails() {
   // Function to get Superhero Powers
   function getSuperheroPowers() {
     const id = document.getElementById('superheroPowersId').value;
+    if (!validateInput(id)) {
+        console.error('Invalid ID');
+        return;
+    }
     fetch(`/superheroPow/${id}/powers`)
       .then(response => response.json())
       .then(data => {
@@ -45,6 +72,7 @@ function getSuperheroDetails() {
   
   // Function to get Publishers
   function getPublishers() {
+
     fetch('/publishers')
       .then(response => response.json())
       .then(data => {
@@ -64,7 +92,10 @@ function searchSuperheroes() {
     const nResults = document.getElementById('numberOfResults').value; // Assume this is the new HTML input for 'n'
     const sortCriteria = document.getElementById('sortCriteria').value; // New input for sorting criteria
 
-
+    if (!validateInput(nameQuery) && !validateInput(raceQuery) && !validateInput(publisherQuery) && !validateInput(powersQuery)) {
+        console.error('Invalid search parameters');
+        return;
+    }
     // Make an asynchronous request to the backend
 
     let queryParams = `name=${encodeURIComponent(nameQuery)}&race=${encodeURIComponent(raceQuery)}&publisher=${encodeURIComponent(publisherQuery)}&powers=${encodeURIComponent(powersQuery)}`;
@@ -107,6 +138,7 @@ function searchSuperheroes() {
                     <p>Skin color: ${hero["Skin color"]}</p>
                     <p>Alignment: ${hero.Alignment}</p>
                     <p>Weight: ${hero.Weight} kg</p>
+                    <p>Powers: ${hero.powers.length > 0 ? hero.powers.join(', ') : 'None'}</p>
                 `;
                 resultsDiv.appendChild(heroDiv);
             });
@@ -118,6 +150,10 @@ function searchSuperheroes() {
 
 function searchSuperheroPowers() {
     const query = document.getElementById('searchPowers').value;
+    if (!validateInput(id)) {
+        console.error('Invalid ID');
+        return;
+    }
 
     // Make an asynchronous request to the backend
     fetch(`/superhero/${query}/powers`)
@@ -134,6 +170,10 @@ function searchSuperheroPowers() {
 
 function createList() {
     const listName = document.getElementById('listNameInput').value;
+    if (!validateInput(listName)) {
+        console.error('Invalid list name');
+        return;
+    }
     
     fetch(`/list`, {
         method: 'POST',
@@ -214,7 +254,15 @@ function deleteList() {
 
 function addHeroToList() {
     const listName = document.getElementById('existingLists').value;
-    const heroIds = document.getElementById('heroIdInput').value.split(',').map(id => id.trim()); // split by comma
+    const heroIdsInput = document.getElementById('heroIdInput').value;
+
+    // Validate the input
+    if (!validateHeroIds(heroIdsInput)) {
+        console.error('Invalid input for hero IDs');
+        return;
+    }
+
+    const heroIds = heroIdsInput.split(',').map(id => parseInt(id.trim(), 10));
 
     fetch(`/list/${listName}`, {
         method: 'PUT',
@@ -233,7 +281,18 @@ function addHeroToList() {
     });
 }
 
-window.onload = loadExistingLists;
+window.onload = function() {
+    document.getElementById('searchSuperheroes').addEventListener('click', searchSuperheroes);
+    document.getElementById('getSuperheroDetails').addEventListener('click', getSuperheroDetails);
+    document.getElementById('getSuperheroPowers').addEventListener('click', getSuperheroPowers);
+    document.getElementById('getPublishers').addEventListener('click', getPublishers);
+    document.getElementById('createList').addEventListener('click', createList);
+    document.getElementById('loadExistingLists').addEventListener('click', loadExistingLists);
+    document.getElementById('loadList').addEventListener('click', loadList);
+    document.getElementById('deleteList').addEventListener('click', deleteList);
+    document.getElementById('addHeroToList').addEventListener('click', addHeroToList);
+    document.getElementById('sortList').addEventListener('click', loadList);
+    document.getElementById('sortSearch').addEventListener('click', searchSuperheroes);
 
-
-
+    loadExistingLists(); // Call this at the start to load lists initially
+};

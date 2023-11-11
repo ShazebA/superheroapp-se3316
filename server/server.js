@@ -2,20 +2,48 @@ const express = require('express');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const path = require('path');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const { body, param, query, validationResult } = require('express-validator');
+
 
 const app = express();
 const PORT = 3000;
 
-const clientFolderPath = path.join(__dirname, '..', 'client');
-app.use(express.static("C:/University/Year 3/SE3316/se3316-sashiqu-lab3/client"));
-app.use(bodyParser.json());
+app.use(helmet());
+app.use(express.static(path.join(__dirname, "..", 'client')));
+app.use(express.json({ limit: '100kb' }));
+
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100
+});
+app.use('/api/', apiLimiter);
+
+
+const validate = validations => {
+    return async (req, res, next) => {
+        await Promise.all(validations.map(validation => validation.run(req)));
+
+        const errors = validationResult(req);
+        if (errors.isEmpty()) {
+            return next();
+        }
+
+        res.status(400).json({ errors: errors.array() });
+    };
+};
+
+app.use(bodyParser.json({limit: '100kb'}));
 
 app.get('/', (req, res) => { 
-    res.sendFile("C:/University/Year 3/SE3316/se3316-sashiqu-lab3/client/index.html");
+    // Send 'index.html' from the 'client' directory
+    res.sendFile(path.join(__dirname, "..", 'client', 'index.html'));
 });
 
-
-app.get('/superheroID/:id', (req, res) => {
+app.get('/superheroID/:id',  validate([
+    param('id').isInt({ gt: 0 })
+    ]),  (req, res) => {
     // Read the superhero_info.json file
     const superheroes = JSON.parse(fs.readFileSync('superhero_info.json', 'utf-8'));
 
@@ -29,7 +57,11 @@ app.get('/superheroID/:id', (req, res) => {
     return res.json(hero);
 });
 
-app.get('/superheroPow/:id/powers', (req, res) => {
+app.get('/superheroPow/:id/powers',   
+    validate([
+        param('id').isInt({ gt: 0 })
+    ]), 
+    (req, res) => {
     // Read the superhero_info.json file to get the superhero's name by ID
     const superheroes = JSON.parse(fs.readFileSync('superhero_info.json', 'utf-8'));
     const hero = superheroes.find(h => h.id === parseInt(req.params.id));
@@ -60,7 +92,13 @@ app.get('/superheroPow/:id/powers', (req, res) => {
     });
 });
 
-app.get('/superhero/search', (req, res) => {
+app.get('/superhero/search',validate([
+    query('name').optional().isLength({ max: 100 }),
+    query('race').optional().isLength({ max: 50 }),
+    query('publisher').optional().isLength({ max: 100 }),
+    query('powers').optional().isLength({ max: 200 }),
+    query('n').optional().isInt({ min: 1, max: 100 }),
+]),  (req, res) => {
     // Read the superhero_info.json file
     const superheroes = JSON.parse(fs.readFileSync('superhero_info.json', 'utf-8'));
     const powers_dict = JSON.parse(fs.readFileSync('superhero_powers.json', 'utf-8'));
@@ -72,7 +110,7 @@ app.get('/superhero/search', (req, res) => {
     const powersQuery = req.query.powers ? req.query.powers.toLowerCase().split(',') : null;
     const nQuery = req.query.n ? parseInt(req.query.n, 10) : null;
     const sortCriteria = req.query.sort;
-
+    console.log("Sort Criteria:", sortCriteria);
 
 
     // Check if at least one query parameter is provided
@@ -82,7 +120,7 @@ app.get('/superhero/search', (req, res) => {
 
 
     // Filter superheroes based on the provided query parameters
-    const matchedHeroes = superheroes.filter(hero => {
+    let matchedHeroes = superheroes.filter(hero => {
         const matchesName = nameQuery ? hero.name.toLowerCase().includes(nameQuery) : true;
         const matchesRace = raceQuery ? hero.Race.toLowerCase().includes(raceQuery) : true;
         const matchesPublisher = publisherQuery ? hero.Publisher.toLowerCase().includes(publisherQuery) : true;
@@ -98,9 +136,22 @@ app.get('/superhero/search', (req, res) => {
         return res.status(404).json({ error: "No superheroes found matching the given criteria" });
     }
 
-    const results = (!nQuery || isNaN(nQuery)) ? matchedHeroes : matchedHeroes.slice(0, nQuery); 
+    matchedHeroes = matchedHeroes.map(hero => {
+        // Find the power entry for the hero
+        const heroPowersEntry = powers_dict.find(entry => entry.hero_names === hero.name);
 
-    if (sortCriteria) {
+        // Filter the powers marked as 'True'
+        hero.powers = heroPowersEntry ? Object.entries(heroPowersEntry)
+            .filter(([key, value]) => key !== 'hero_names' && value === "True")
+            .map(([key, _]) => key) : [];
+        
+        return hero;
+    });
+
+     results = (!nQuery || isNaN(nQuery)) ? matchedHeroes : matchedHeroes.slice(0, nQuery); 
+
+
+     if (sortCriteria) {
         results.sort((a, b) => {
             switch(sortCriteria) {
                 case 'Name':
@@ -110,12 +161,10 @@ app.get('/superhero/search', (req, res) => {
                     let bValue = b[sortCriteria] ? b[sortCriteria].toLowerCase() : '';
                     return aValue.localeCompare(bValue);
                 case 'Powers':
-                    // Additional logic needed to count powers for each hero
-                    // This will require fetching powers data similar to the list details endpoint
-                    break;
+                    return b.powers.length - a.powers.length;
                 default:
                     console.log("Invalid sort criteria provided");
-                    break;
+                    return 0;
             }
         });
     }
@@ -130,7 +179,9 @@ app.get('/publishers', (req, res) => {
     res.json(publishers);
 });
 
-app.post('/list', (req, res) => {
+app.post('/list', validate([
+    body('name').isLength({ min: 1, max: 50 })
+]),  (req, res) => {
     const { name } = req.body;
 
     let lists = JSON.parse(fs.readFileSync('listsDatabase.json', 'utf-8'));
@@ -157,7 +208,7 @@ app.get('/lists', (req, res) => {
 });
 
 
-app.put('/list/:name', (req, res) => {
+app.put('/list/:name',  (req, res) => {
     const { name } = req.params;
     const { ids } = req.body;
 
