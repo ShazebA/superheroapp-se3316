@@ -10,76 +10,117 @@ const clientFolderPath = path.join(__dirname, '..', 'client');
 app.use(express.static("C:/University/Year 3/SE3316/se3316-sashiqu-lab3/client"));
 app.use(bodyParser.json());
 
-// app.get('/', (req, res) => { 
-//     res.sendFile("C:/University/Year 3/SE3316/se3316-sashiqu-lab3/client/index.html");
-// });
+app.get('/', (req, res) => { 
+    res.sendFile("C:/University/Year 3/SE3316/se3316-sashiqu-lab3/client/index.html");
+});
 
 
-// app.get('/superhero/:id', (req, res) => {
-//     // Read the superhero_info.json file
-//     const superheroes = JSON.parse(fs.readFileSync('superhero_info.json', 'utf-8'));
+app.get('/superheroID/:id', (req, res) => {
+    // Read the superhero_info.json file
+    const superheroes = JSON.parse(fs.readFileSync('superhero_info.json', 'utf-8'));
 
-//     // Find the superhero by ID
-//     const hero = superheroes.find(h => h.id === parseInt(req.params.id));
+    // Find the superhero by ID
+    const hero = superheroes.find(h => h.id === parseInt(req.params.id));
     
-//     if (!hero) {
-//         return res.status(404).json({ error: "Superhero not found" });
-//     }
+    if (!hero) {
+        return res.status(404).json({ error: "Superhero not found" });
+    }
     
-//     return res.json(hero);
-// });
+    return res.json(hero);
+});
 
-// app.get('/superhero/:id/powers', (req, res) => {
-//     // Read the superhero_info.json file to get the superhero's name by ID
-//     const superheroes = JSON.parse(fs.readFileSync('superhero_info.json', 'utf-8'));
-//     const hero = superheroes.find(h => h.id === parseInt(req.params.id));
+app.get('/superheroPow/:id/powers', (req, res) => {
+    // Read the superhero_info.json file to get the superhero's name by ID
+    const superheroes = JSON.parse(fs.readFileSync('superhero_info.json', 'utf-8'));
+    const hero = superheroes.find(h => h.id === parseInt(req.params.id));
 
-//     if (!hero) {
-//         return res.status(404).json({ error: "Superhero not found" });
-//     }
+    if (!hero) {
+        return res.status(404).json({ error: "Superhero not found" });
+    }
 
-//     // Now, read the superhero_powers.json file to get the powers for the superhero's name
-//     const powersList = JSON.parse(fs.readFileSync('superhero_powers.json', 'utf-8'));
+    // Now, read the superhero_powers.json file to get the powers for the superhero's name
+    const powersList = JSON.parse(fs.readFileSync('superhero_powers.json', 'utf-8'));
     
-//     // Find the powers by hero name (assuming hero names are unique)
-//     const powers = powersList.find(p => p.hero_names === hero.name);
+    // Find the powers entry for the given superhero
+    const powers = powersList.find(p => p.hero_names === hero.name);
     
-//     if (!powers) {
-//         return res.status(404).json({ error: "Powers not found for the superhero" });
-//     }
+    if (!powers) {
+        return res.status(404).json({ error: "Powers not found for the superhero" });
+    }
     
-//     return res.json(powers);
-// });
+    // Extract the powers that are marked as "True"
+    const truePowers = Object.entries(powers)
+        .filter(([key, value]) => key !== 'hero_names' && value === "True")
+        .map(([key, _]) => key);
+
+    // Return the hero's name and the true powers
+    return res.json({
+        name: hero.name,
+        powers: truePowers
+    });
+});
 
 app.get('/superhero/search', (req, res) => {
     // Read the superhero_info.json file
     const superheroes = JSON.parse(fs.readFileSync('superhero_info.json', 'utf-8'));
+    const powers_dict = JSON.parse(fs.readFileSync('superhero_powers.json', 'utf-8'));
 
     // Extract query parameters and convert to lowercase for case-insensitive search
     const nameQuery = req.query.name ? req.query.name.toLowerCase() : null;
     const raceQuery = req.query.race ? req.query.race.toLowerCase() : null;
     const publisherQuery = req.query.publisher ? req.query.publisher.toLowerCase() : null;
+    const powersQuery = req.query.powers ? req.query.powers.toLowerCase().split(',') : null;
+    const nQuery = req.query.n ? parseInt(req.query.n, 10) : null;
+    const sortCriteria = req.query.sort;
+
+
 
     // Check if at least one query parameter is provided
-    if (!nameQuery && !raceQuery && !publisherQuery) {
+    if (!nameQuery && !raceQuery && !publisherQuery && powersQuery.length === 0) {
         return res.status(400).json({ error: "Provide at least one search parameter (name, race, or publisher)" });
     }
+
 
     // Filter superheroes based on the provided query parameters
     const matchedHeroes = superheroes.filter(hero => {
         const matchesName = nameQuery ? hero.name.toLowerCase().includes(nameQuery) : true;
         const matchesRace = raceQuery ? hero.Race.toLowerCase().includes(raceQuery) : true;
         const matchesPublisher = publisherQuery ? hero.Publisher.toLowerCase().includes(publisherQuery) : true;
+        const matchesPowers = powersQuery ? powersQuery.every(powerQuery => 
+            powers_dict[hero.name] && powers_dict[hero.name].map(p => p.toLowerCase()).includes(powerQuery.toLowerCase())) : true;
 
-        return matchesName && matchesRace && matchesPublisher;
+        return matchesName && matchesRace && matchesPublisher && matchesPowers;
     });
 
+    
     // If no matches are found, return an appropriate response
     if (matchedHeroes.length === 0) {
         return res.status(404).json({ error: "No superheroes found matching the given criteria" });
     }
 
-    return res.json(matchedHeroes);
+    const results = (!nQuery || isNaN(nQuery)) ? matchedHeroes : matchedHeroes.slice(0, nQuery); 
+
+    if (sortCriteria) {
+        results.sort((a, b) => {
+            switch(sortCriteria) {
+                case 'Name':
+                case 'Publisher':
+                case 'Race':
+                    let aValue = a[sortCriteria] ? a[sortCriteria].toLowerCase() : '';
+                    let bValue = b[sortCriteria] ? b[sortCriteria].toLowerCase() : '';
+                    return aValue.localeCompare(bValue);
+                case 'Powers':
+                    // Additional logic needed to count powers for each hero
+                    // This will require fetching powers data similar to the list details endpoint
+                    break;
+                default:
+                    console.log("Invalid sort criteria provided");
+                    break;
+            }
+        });
+    }
+
+    return res.json(results);
 });
 
 
@@ -107,7 +148,7 @@ app.get('/lists', (req, res) => {
     try {
         let lists = JSON.parse(fs.readFileSync('listsDatabase.json', 'utf-8'));
         // Extract only the list names (which are the keys in the JSON object)
-        let listNames = Object.keys(lists);
+        let listNames = Object.keys(lists);         
         res.json(listNames);
     } catch (error) {
         console.error("Error:", error);
@@ -168,14 +209,14 @@ app.delete('/list/:name', (req, res) => {
 
 app.get('/list/details/:name', (req, res) => {
     const { name } = req.params;
-    const sortBy = req.query.sortBy || 'name'; // Default sorting by name
+    const sortCriteria = req.query.sort;
 
     let lists = JSON.parse(fs.readFileSync('listsDatabase.json', 'utf-8'));
     if (!lists[name]) {
         return res.status(404).json({ error: "List name does not exist" });
     }
 
-    const heroIds = lists[name].map(Number);
+    const heroIds = [].concat(...lists[name]).map(Number);
     const superheroes = JSON.parse(fs.readFileSync('superhero_info.json', 'utf-8'));
     const powersData = JSON.parse(fs.readFileSync('superhero_powers.json', 'utf-8'));
 
@@ -184,17 +225,28 @@ app.get('/list/details/:name', (req, res) => {
         hero.powers = heroPowers ? Object.keys(heroPowers).filter(power => heroPowers[power] === "True") : [];
         return hero;
     });
-
-    // Sorting logic
-    heroesInList.sort((a, b) => {
-        if (sortBy === 'power') {
-            return b.powers.length - a.powers.length;
+    
+    // Sorting based on the provided sortCriteria
+    if (sortCriteria) {
+        switch(sortCriteria) {
+            case 'Name':
+            case 'Publisher':
+            case 'Race':
+                heroesInList.sort((a, b) => {
+                    // Using a ternary to handle potential null/undefined values
+                    let aValue = a[sortCriteria] ? a[sortCriteria].toLowerCase() : '';
+                    let bValue = b[sortCriteria] ? b[sortCriteria].toLowerCase() : '';
+                    return aValue.localeCompare(bValue);
+                });                break;
+            case 'Powers':
+                heroesInList.sort((a, b) => b.powers.length - a.powers.length);
+                break;
+            default:
+                console.log("Invalid sort criteria provided");
+                break;
         }
-        if (a[sortBy] < b[sortBy]) return -1;
-        if (a[sortBy] > b[sortBy]) return 1;
-        return 0;
-    });
-
+    }
+    
     res.json(heroesInList);
 });
 
