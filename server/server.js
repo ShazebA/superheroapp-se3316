@@ -265,10 +265,6 @@ app.get('/list/ids/:name', (req, res) => {
     res.json(heroIds);
 });
 
-
-
-
-
 app.listen(PORT, () => {
     console.log(`Superhero app listening on port ${PORT}!`);
 })
