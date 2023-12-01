@@ -8,11 +8,15 @@ const { body, param, query, validationResult } = require('express-validator');
 
 
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 
 app.use(helmet());
-app.use(express.static(path.join(__dirname, "..", 'client')));
+app.use(express.static(path.resolve(__dirname, '../client/build')));
 app.use(express.json({ limit: '100kb' }));
+
+app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
+  });
 
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -315,6 +319,11 @@ app.get('/list/ids/:name', (req, res) => {
 
     res.json(heroIds);
 });
+
+app.get('/express_backend', (req, res) => { // Line 9
+    res.json({ express: 'YOUR EXPRESS BACKEND IS CONNECTED TO REACT' }); // Line 10
+});
+
 
 app.listen(PORT, () => {
     console.log(`Superhero app listening on port ${PORT}!`);

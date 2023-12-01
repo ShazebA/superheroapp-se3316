@@ -148,25 +148,6 @@ function searchSuperheroes() {
         });
 }
 
-function searchSuperheroPowers() {
-    const query = document.getElementById('searchPowers').value;
-    if (!validateInput(id)) {
-        console.error('Invalid ID');
-        return;
-    }
-
-    // Make an asynchronous request to the backend
-    fetch(`/superhero/${query}/powers`)
-        .then(response => response.json())
-        .then(data => {
-            // Display the results
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = JSON.stringify(data);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-}
 
 function createList() {
     const listName = document.getElementById('listNameInput').value;
