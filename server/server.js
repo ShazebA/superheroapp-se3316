@@ -5,18 +5,17 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { body, param, query, validationResult } = require('express-validator');
-
+const cors = require('cors');
 
 const app = express();
-const PORT = 3001;
+const PORT = 5000;
 
 app.use(helmet());
 app.use(express.static(path.resolve(__dirname, '../client/build')));
 app.use(express.json({ limit: '100kb' }));
+app.use(cors());
 
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
-  });
+
 
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -40,10 +39,6 @@ const validate = validations => {
 
 app.use(bodyParser.json({limit: '100kb'}));
 
-app.get('/', (req, res) => { 
-    // Send 'index.html' from the 'client' directory
-    res.sendFile(path.join(__dirname, "..", 'client', 'index.html'));
-});
 
 app.get('/superheroID/:id',  validate([
     param('id').isInt({ gt: 0 })
@@ -324,6 +319,9 @@ app.get('/express_backend', (req, res) => { // Line 9
     res.json({ express: 'YOUR EXPRESS BACKEND IS CONNECTED TO REACT' }); // Line 10
 });
 
+app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
+  });
 
 app.listen(PORT, () => {
     console.log(`Superhero app listening on port ${PORT}!`);

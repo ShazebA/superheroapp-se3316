@@ -48,6 +48,13 @@ const SuperheroApp = () => {
             .catch(error => console.error('Error:', error));
     };
 
+    const tryConnection = () => {
+        fetch(`/express_backend`)
+            .then(response => response.json())
+            .then(data => setSuperheroDetails(data))
+            .catch(error => console.error('Error:', error));
+    };
+
     // Function to get Superhero Powers
     const getSuperheroPowers = () => {
         if (!validateInput(superheroPowersId)) {
