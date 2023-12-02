@@ -4,11 +4,13 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import SuperheroApp from './SuperheroApp';
+import Login from './login';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-\    <SuperheroApp />
+    <Login />
+    <SuperheroApp />
   </React.StrictMode>
 );
 

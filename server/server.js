@@ -7,6 +7,9 @@ const helmet = require('helmet');
 const { body, param, query, validationResult } = require('express-validator');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
+const jwt = require('jsonwebtoken');
+const authRoute = require('./Auth/authRoute'); 
+
 
 const app = express();
 const PORT = 5000;
@@ -40,6 +43,11 @@ const validate = validations => {
 };
 
 app.use(bodyParser.json({limit: '100kb'}));
+app.use(bodyParser.urlencoded({ extended: true }));
+
+
+app.use(authRoute);
+    
 
 const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -52,6 +60,7 @@ async function connectToMongo() {
         console.error('Connection to MongoDB failed', error);
     }
 }
+
 
 connectToMongo();
 
@@ -159,10 +168,13 @@ app.get('/superhero/search', [
         if (req.query.powers) {
             const powersQuery = req.query.powers.toLowerCase().split(',');
             matchedHeroes = await Promise.all(matchedHeroes.filter(async (hero) => {
-                const powers = await superheroPowerCollection.findOne({ hero_names: hero.name });
-                return powers && powersQuery.every(pq => powers[pq]);
+                const heroPowersEntry = await superheroPowerCollection.findOne({ hero_names: hero.name });
+        
+                // Check if each power in the powersQuery array is set to true in the hero's power data
+                return heroPowersEntry && powersQuery.every(pq => heroPowersEntry[pq] === "True");
             }));
         }
+        
 
         // Sort the results if sort criteria is provided
         if (req.query.sort) {
@@ -190,11 +202,15 @@ app.get('/superhero/search', [
         // Map through heroes to append their powers
         matchedHeroes = await Promise.all(matchedHeroes.map(async (hero) => {
             const heroPowersEntry = await superheroPowerCollection.findOne({ hero_names: hero.name });
+        
+            // Append only powers that are set to true
             hero.powers = heroPowersEntry ? Object.entries(heroPowersEntry)
-                .filter(([key, value]) => key !== 'hero_names' && value)
+                .filter(([key, value]) => key !== 'hero_names' && value === 'True') // Only include powers where the value is true
                 .map(([key, _]) => key) : [];
+            
             return hero;
         }));
+        
 
         // Return the search results
         res.json(matchedHeroes);
@@ -252,6 +268,20 @@ app.post('/list', [
     }
 });
 
+app.get('/lists', async (req, res) => {
+    try {
+        const database = client.db('test');
+        const listsCollection = database.collection('Lists_collection');
+
+        // Use MongoDB's distinct function to get all unique list names
+        const listNames = await listsCollection.distinct('name');
+        
+        res.json(listNames);
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
 
 
 app.put('/list/:name', async (req, res) => {

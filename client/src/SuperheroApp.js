@@ -139,6 +139,11 @@ const SuperheroApp = () => {
                 console.error('Error:', error);
             });
     }
+
+    function clearSearch() {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '';
+    }
     
     
     function createList() {
@@ -318,6 +323,7 @@ const SuperheroApp = () => {
                     <option value="Powers">Powers</option>
                 </select>
                 <button id="sortSearch" onClick={searchSuperheroes}>Sort</button>
+                <button id="clearSearch" onClick={clearSearch}>Clear</button>
                 <div id="results">
             
                 </div>
