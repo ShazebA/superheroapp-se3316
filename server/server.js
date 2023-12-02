@@ -8,7 +8,7 @@ const { body, param, query, validationResult } = require('express-validator');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
 const jwt = require('jsonwebtoken');
-const authRoute = require('./Auth/authRoute'); 
+const router = require('./Auth/authRoute.js'); 
 
 
 const app = express();
@@ -27,6 +27,8 @@ const apiLimiter = rateLimit({
     max: 100
 });
 app.use('/api/', apiLimiter);
+app.set('trust proxy', 1);
+
 
 
 const validate = validations => {
@@ -46,7 +48,7 @@ app.use(bodyParser.json({limit: '100kb'}));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 
-app.use(authRoute);
+app.use(router);
     
 
 const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
