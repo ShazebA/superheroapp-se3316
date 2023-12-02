@@ -4,15 +4,16 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import SuperheroApp from './SuperheroApp';
-import Login from './login';
-import Register from './Register';
+import User from './User';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import LandingPage from './LandingPage';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <Login />
+    <User />
+    <LandingPage />
     <SuperheroApp />
-    <Register />
   </React.StrictMode>
 );
 
