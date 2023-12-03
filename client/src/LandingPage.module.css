@@ -1,0 +1,44 @@
+.landing-container {
+    text-align: center;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    padding: 50px;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .title {
+    font-size: 3rem;
+    color: #e0e0e0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+  
+  .about-section h2 {
+    font-size: 2rem;
+    color: #f0f0f0;
+    margin-bottom: 15px;
+  }
+  
+  .about-section p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: auto;
+    padding: 0 20px;
+  }
+  
+  /* Superhero theme colors and styles */
+  .title, .about-section h2 {
+    color: #ff0000; /* Red color for a superhero vibe */
+    text-shadow: 2px 2px 4px #000000;
+  }
+  
+  .about-section p {
+    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  }
+  

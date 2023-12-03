@@ -1,11 +1,11 @@
 import React from 'react';
-import './LandingPage.css';
+import './LandingPage.module.css';
 
 const LandingPage = () => {
   return (
-    <div className="landing-container">
-      <h1 className="title">Shazzy's Superhero App</h1>
-      <div className="about-section">
+    <div className="styles.landingContainer">
+      <h1 className="styles.title">Shazzy's Superhero App</h1>
+      <div className="styles.aboutSection">
         <h2>About the App</h2>
         <p>
           Welcome to Shazzy's Superhero App, the ultimate destination for all superhero enthusiasts! 
@@ -17,6 +17,6 @@ const LandingPage = () => {
       </div>
     </div>
   );
-}
+}   
 
 export default LandingPage;

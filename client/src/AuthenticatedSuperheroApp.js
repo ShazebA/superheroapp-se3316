@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './StyleSheet.css'; // Adjust the path as necessary
 
-const SuperheroApp = () => {
+const AuthenticatedSuperheroApp = () => {
     // State variables for input fields and data
     const [name, setName] = useState('');
     const [race, setRace] = useState('');
@@ -407,5 +407,5 @@ const SuperheroApp = () => {
     
 };
 
-export default SuperheroApp;
+export default AuthenticatedSuperheroApp;
 
