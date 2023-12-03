@@ -1,0 +1,45 @@
+.login-success-popup {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+.login-success-popup button {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.login-error-popup {
+    /* Similar styling as login-success-popup */
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #cc0000; /* Red border for error */
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+.login-error-popup button {
+    /* Similar styling as the button in login-success-popup */
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}

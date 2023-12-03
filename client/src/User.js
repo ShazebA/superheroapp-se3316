@@ -3,7 +3,7 @@ import Login from './login';
 import Register from './Register';
 import React, { useState } from 'react';
 
-function User() {
+function User(props) {
     const [showModal, setShowModal] = useState(false);
   
     return (
@@ -19,7 +19,7 @@ function User() {
           <Modal.Body>
             <Tabs defaultActiveKey="login" id="login-register-tabs">
               <Tab eventKey="login" title="Login">
-                <Login />
+              <Login onLoginSuccess={props.onLoginSuccess} />
               </Tab>
               <Tab eventKey="register" title="Register">
                 <Register />

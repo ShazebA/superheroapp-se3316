@@ -1,23 +1,36 @@
 import logo from './logo.svg';
 import './App.css';
-import React, { Component } from 'react';
+import React, { Componeny, useState} from 'react';
+import User from './User';
+import LandingPage from './LandingPage';
+import AuthenticatedSuperheroApp from './AuthenticatedSuperheroApp';
+import SuperheroApp from './SuperheroApp';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 
-class App extends Component {
-  state = {
-      data: null
-    };
-    render() {
-      return (
-        <div className="App">
-          <header className="App-header">
-            <img src={logo} className="App-logo" alt="logo" />
-            <h1 className="App-title">Welcome to React</h1>
-          </header>
-          <p className="App-intro">{this.state.data}</p>
-        </div>
-      );
-    }
-  }
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Function to handle login (this is just an example)
+  const handleLoginSuccess = (token) => {
+    setIsAuthenticated(true);
+    // Optionally, store the token in localStorage or Context
+    sessionStorage.setItem('token', token);
+  };
+
+  return (
+    <div>
+      <User onLoginSuccess={handleLoginSuccess} />
+      {!isAuthenticated ? (
+        <>
+          <LandingPage />
+          <SuperheroApp />
+        </>
+      ) : (
+        <AuthenticatedSuperheroApp />
+      )}
+    </div>
+  );
+}
   
   export default App; 
