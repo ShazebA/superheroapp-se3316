@@ -192,31 +192,7 @@ const SuperheroPowerSchema = new mongoose.Schema({
 });
 
 
-const SuperheroInfo = mongoose.model('Superhero', SuperheroSchema, 'Superhero_collection');
-const SuperheroPowers = mongoose.model('SuperheroPower', SuperheroPowerSchema, 'Superhero_power_collection');
+const SuperheroInfo = mongoose.model('Superhero', SuperheroSchema);
+const SuperheroPowers = mongoose.model('SuperheroPower', SuperheroPowerSchema);
 
-
-async function insertData() {
-  try {
-    // Connect to MongoDB
-    await mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    // Read JSON data
-    const superheroInfoData = JSON.parse(await fs.readFile('superhero_info.json', 'utf8'));
-    const superheroPowersData = JSON.parse(await fs.readFile('superhero_powers.json', 'utf8'));
-
-    // Insert data using insertMany, which returns a promise
-    await SuperheroInfo.insertMany(superheroInfoData);
-    console.log('Superhero info inserted');
-
-    await SuperheroPowers.insertMany(superheroPowersData);
-    console.log('Superhero powers inserted');
-
-    // Close the connection once done
-    mongoose.connection.close();
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-insertData();
+module.exports = { SuperheroInfo, SuperheroPowers };

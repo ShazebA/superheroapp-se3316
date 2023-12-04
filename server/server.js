@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken');
 const router = require('./Auth/authRoute.js'); 
 
 
+
 const app = express();
 const PORT = 5000;
 const mongoURI = 'mongodb+srv://sashiqu:sashiqu@superhero.i0fq1ho.mongodb.net/?retryWrites=true&w=majority';
@@ -49,7 +50,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 app.use(router);
-    
+const authenticatedUsers = require('./authenticatedUsers');
+app.use('/api/authenticated', authenticatedUsers);
+
 
 const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -359,7 +362,6 @@ app.delete('/list/:name', async (req, res) => {
 
 app.get('/list/details/:name', async (req, res) => {
     const { name } = req.params;
-    const sortCriteria = req.query.sort;
 
     try {
         const database = client.db('test');
@@ -381,9 +383,6 @@ app.get('/list/details/:name', async (req, res) => {
             const powers = await powersCollection.findOne({ hero_names: hero.name });
             hero.powers = powers ? Object.keys(powers).filter(power => powers[power] === "True") : [];
         }
-
-        // Sorting logic goes here
-        // ... (same as your existing sorting code)
 
         res.json(heroesInList);
     } catch (error) {
