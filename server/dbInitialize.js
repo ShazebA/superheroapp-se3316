@@ -17,7 +17,7 @@ const SuperheroSchema = new mongoose.Schema({
     'Skin color': String,
     Alignment: String,
     Weight: Number
-});
+}, {collection: 'Superhero_collection'});
 
 
 const SuperheroPowerSchema = new mongoose.Schema({
@@ -189,10 +189,10 @@ const SuperheroPowerSchema = new mongoose.Schema({
     'Vision - Cryo': String,
     Omnipresent: String,
     Omniscient: String
-});
+}, {collection: 'Superhero_power_collection'});
 
 
-const SuperheroInfo = mongoose.model('Superhero', SuperheroSchema);
-const SuperheroPowers = mongoose.model('SuperheroPower', SuperheroPowerSchema);
+const SuperheroInfo = mongoose.model('Superhero', SuperheroSchema, "Superhero_collection");
+const SuperheroPowers = mongoose.model('SuperheroPower', SuperheroPowerSchema, "Superhero_power_collection");
 
 module.exports = { SuperheroInfo, SuperheroPowers };

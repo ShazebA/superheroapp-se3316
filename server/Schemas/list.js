@@ -19,6 +19,8 @@ const listSchema = new mongoose.Schema({
         ref: 'Users',
         required: true
     }
+}, {
+    timestamps: { updatedAt: 'lastModified' } // This will use 'lastModified' instead of 'updatedAt'
 });
 
 const List = mongoose.model('List', listSchema, "Lists");

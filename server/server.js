@@ -52,6 +52,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(router);
 const authenticatedUsers = require('./authenticatedUsers');
 app.use('/api/authenticated', authenticatedUsers);
+const unauthorizedUsers = require('./unauthorizedUsers');
+app.use('/api', unauthorizedUsers);
+
 
 
 const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });

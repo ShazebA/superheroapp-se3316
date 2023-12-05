@@ -25,6 +25,13 @@ const AuthenticatedSuperheroApp = (props) => {
     const [heroDetails, setHeroDetails] = useState({}); // To store hero details for each list
     const [newListHeroes, setNewListHeroes] = useState('');
     const [editListHeroes, setEditListHeroes] = useState('');
+    const [createListError, setCreateListError] = useState('');
+    const [editListError, setEditListError] = useState('');
+
+
+    const MIN_HERO_ID = 0;
+    const MAX_HERO_ID = 733;
+
 
 
     // Helper functions
@@ -90,9 +97,13 @@ const AuthenticatedSuperheroApp = (props) => {
         const token = localStorage.getItem('token'); // Get the auth token
         const heroIds = newListHeroes.split(',')
         .map(id => id.trim())
-        .filter(id => id !== '' && !isNaN(id))
-        .map(id => parseInt(id));
+        .filter(id => id !== '' && !isNaN(id) && parseInt(id) >= MIN_HERO_ID && parseInt(id) <= MAX_HERO_ID);
 
+        if (heroIds.length !== newListHeroes.split(',').filter(id => id.trim() !== '').length) {
+            console.error('One or more hero IDs are invalid');
+            // Handle the error appropriately, such as displaying a message to the user
+            return;
+        }
 
         try {
             const response = await fetch('/api/authenticated/create-list', {
@@ -115,6 +126,8 @@ const AuthenticatedSuperheroApp = (props) => {
 
             const data = await response.json();
             console.log('List created:', data);
+
+            setUserLists(prevLists => [...prevLists, data]);
 
             // Optionally, clear the form or update the state
             setNewListName('');
@@ -163,8 +176,13 @@ const AuthenticatedSuperheroApp = (props) => {
         const token = localStorage.getItem('token');
         const heroIds = newListHeroes.split(',')
         .map(id => id.trim())
-        .filter(id => id !== '' && !isNaN(id))
-        .map(id => parseInt(id));
+        .filter(id => id !== '' && !isNaN(id) && parseInt(id) >= MIN_HERO_ID && parseInt(id) <= MAX_HERO_ID);
+
+        if (heroIds.length !== editListHeroes.split(',').filter(id => id.trim() !== '').length) {
+            console.error('One or more hero IDs are invalid');
+            // Handle the error appropriately, such as displaying a message to the user
+            return;
+        }
 
         try {
             const response = await fetch(`/api/authenticated/edit-list/${selectedList._id}`, {
@@ -334,7 +352,6 @@ const AuthenticatedSuperheroApp = (props) => {
     
             {/* Display Search Results */}
             <div className="results-section">                
-                <button id="sortSearch" onClick={searchSuperheroes}>Sort</button>
                 <button id="clearSearch" onClick={clearSearch}>Clear</button>
                 <div id="results">
                     {searchResults.map(hero => (

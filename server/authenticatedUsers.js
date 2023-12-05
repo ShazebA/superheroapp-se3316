@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const List = require('./Schemas/List'); // Import List model
 const Review = require('./Schemas/Review'); // Import Review model
 const { verifyToken } = require('./Auth/verifyToken');
-const {SuperheroInfo, SuperheroPower} = require('./dbInitialize');
+const { MongoClient } = require('mongodb');
 
 
 const router = express.Router();
@@ -175,28 +175,46 @@ router.post('/add-review', [
 });
 
 router.get('/list-heroes/:listId', async (req, res) => {
+    const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
+
+    // Connect to MongoDB
+    async function connectToMongo() {
+        try {
+            await client.connect();
+            console.log('Connected to MongoDB');
+        } catch (error) {
+            console.error('Connection to MongoDB failed', error);
+        }
+    }
+
+
+    connectToMongo();
     const listId = req.params.listId;
     const userId = req.user.userId; // Assuming the user ID is stored in req.user
 
     try {
         // Get the list and verify ownership
-        const list = await List.findById(listId).populate('listOwner');
-        if (!list || !list.listOwner._id.equals(userId)) {
+        const list = await List.findById(listId);
+        if (!list || !list.listOwner.equals(userId)) {
             return res.status(404).json({ error: "List not found or you do not have permission" });
         }
 
+        const database = client.db('test');
+        const superheroesCollection = database.collection('Superhero_collection');
+        const powersCollection = database.collection('Superhero_power_collection');
+
+
         // Get the superheroes in the list
-        const heroesInList = await Superhero.find({ _id: { $in: list.items } });
+        const heroesInList = await superheroesCollection.find({ id: { $in: list.items } }).toArray();
 
         // Add powers to the heroes
-        const heroesWithPowers = await Promise.all(heroesInList.map(async (hero) => {
-            const powers = await Power.find({ heroId: hero._id }); // Assuming 'heroId' is the correct field in Power model
-            hero = hero.toObject(); // Convert Mongoose document to plain object
-            hero.powers = powers.map(power => power.details); // Assuming 'details' contains the power data
-            return hero;
-        }));
+        for (let hero of heroesInList) {
+            const powers = await powersCollection.findOne({ hero_names: hero.name });
+            hero.powers = powers ? Object.keys(powers).filter(power => powers[power] === "True") : [];
+        }
 
-        res.json(heroesWithPowers);
+        res.json(heroesInList);
+        client.close();
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
