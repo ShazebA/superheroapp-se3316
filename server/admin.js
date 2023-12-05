@@ -41,8 +41,100 @@ router.put('/grant-admin/:userId', checkAdmin, async (req, res) => {
     }
 });
 
+router.put('/hide-review/:reviewId', checkAdmin, async (req, res) => {
+    const reviewId = req.params.reviewId;
 
+    try {
+        const review = await Review.findById(reviewId);
+        if (!review) {
+            return res.status(404).json({ error: 'Review not found' });
+        }
 
+        review.isVisible = false;
+        await review.save();
+
+        res.json({ message: 'Review hidden successfully', reviewId: review._id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.put('/hide-review/:reviewId', checkAdmin, async (req, res) => {
+    const reviewId = req.params.reviewId;
+
+    try {
+        const review = await Review.findById(reviewId);
+        if (!review) {
+            return res.status(404).json({ error: 'Review not found' });
+        }
+
+        review.isVisible = false;
+        await review.save();
+
+        res.json({ message: 'Review hidden successfully', reviewId: review._id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.put('/unhide-review/:reviewId', checkAdmin, async (req, res) => {
+    const reviewId = req.params.reviewId;
+
+    try {
+        const review = await Review.findById(reviewId);
+        if (!review) {
+            return res.status(404).json({ error: 'Review not found' });
+        }
+
+        review.isVisible = true;
+        await review.save();
+
+        res.json({ message: 'Review visibility restored', reviewId: review._id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.put('/deactivate-user/:userId', checkAdmin, async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        user.isActive = false;
+        await user.save();
+
+        res.json({ message: 'User account deactivated', userId: user._id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.put('/reactivate-user/:userId', checkAdmin, async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        user.isActive = true;
+        await user.save();
+
+        res.json({ message: 'User account reactivated', userId: user._id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 
 module.exports = router;
