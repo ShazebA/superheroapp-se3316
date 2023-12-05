@@ -1,13 +1,9 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
 const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken');
 const List = require('./Schemas/List'); // Import List model
 const Review = require('./Schemas/Review'); // Import Review model
-const { verifyToken } = require('./Auth/verifyToken');
 const { MongoClient } = require('mongodb');
-const User = require('./Auth/authRoute');
-
+const Users = require('./Schemas/User');
 const router = express.Router();
 
 const mongoURI = 'mongodb+srv://sashiqu:sashiqu@superhero.i0fq1ho.mongodb.net/?retryWrites=true&w=majority';
@@ -25,6 +21,17 @@ async function calculateAverageRating(listName) {
     const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
     return (totalRating / reviews.length).toFixed(2); // Rounds to 2 decimal places
     }
+
+async function findReviewsForList(listName) {
+    try {
+        const reviews = await Review.find({ listName: listName });
+        return reviews; // This is an array of reviews
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        return []; // Return an empty array in case of an error
+    }
+}
+    
 
 router.get('/public-lists', async (req, res) => {
     try {
@@ -84,20 +91,13 @@ router.get('/public-lists/:listId', async (req, res) => {
         const database = client.db('test');
         const superheroesCollection = database.collection('Superhero_collection');
         const powersCollection = database.collection('Superhero_power_collection');
+
         const heroesInList = await superheroesCollection.find({ id: { $in: list.items } }).toArray();
 
         for (let hero of heroesInList) {
             const powers = await powersCollection.findOne({ hero_names: hero.name });
             hero.powers = powers ? Object.keys(powers).filter(power => powers[power] === "True") : [];
         }
-
-        client.close();
-
-        const reviews = await Review.find({ listName });
-        if (reviews.length === 0) return 0;
-
-
-
         // Construct the expanded list information
         const expandedListInfo = {
             id: list._id,
@@ -106,11 +106,11 @@ router.get('/public-lists/:listId', async (req, res) => {
             description: list.description,
             heroes: heroesInList, // Array of heroes details
             numberOfHeroes: list.items.length,
-            reviews: reviews
-            // Add any additional required information
         };
 
         res.json(expandedListInfo);
+        client.close();
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });

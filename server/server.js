@@ -54,6 +54,8 @@ const authenticatedUsers = require('./authenticatedUsers');
 app.use('/api/authenticated', authenticatedUsers);
 const unauthorizedUsers = require('./unauthorizedUsers');
 app.use('/api', unauthorizedUsers);
+const adminRouter = require('./admin');
+app.use('/api/admin', adminRouter);
 
 
 

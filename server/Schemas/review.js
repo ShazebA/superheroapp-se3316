@@ -19,6 +19,10 @@ const reviewSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    isVisible: {
+        type: Boolean,
+        default: true
+    },
     creationDate: {
         type: Date,
         default: Date.now

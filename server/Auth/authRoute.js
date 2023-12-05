@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const { body } = require('express-validator');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const { MongoClient } = require('mongodb');
 
 
 const mongoURI = 'mongodb+srv://sashiqu:sashiqu@superhero.i0fq1ho.mongodb.net/?retryWrites=true&w=majority';
@@ -171,4 +170,3 @@ router.get('/api/verifyEmail', async (req, res) => {
 });
 
 module.exports = router;
-module.exports = User;
