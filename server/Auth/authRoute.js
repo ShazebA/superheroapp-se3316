@@ -75,8 +75,19 @@ router.post('/api/login', async (req, res) => {
             return res.status(403).json({ error: 'Account is deactivated' });
         }
 
+        if (!user.isEmailVerified) {
+            // Generate a new verification token
+            const verificationToken = jwt.sign({ userId: user._id }, JWTsecret, { expiresIn: '1h' });
+            const verificationLink = `http://localhost:5000/api/verifyEmail?token=${verificationToken}`; // Adjust the base URL as needed
+
+            return res.status(403).json({ 
+                error: 'Email not verified', 
+                verificationLink 
+            });
+        }
+
         const token = jwt.sign({ userId: user._id, isAdmin: user.isAdmin }, JWTsecret); // Replace JWTsecret with your secret key
-        res.json({ token });
+        res.json({ token, isAdmin: user.isAdmin });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
     }

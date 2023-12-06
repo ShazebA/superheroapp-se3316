@@ -29,8 +29,20 @@ function Login(props) {
             }
 
             const data = await response.json();
+
+            if (!response.ok) {
+                if (data.error === 'Account is deactivated') {
+                    alert('Your account is deactivated. Please contact a site administrator.');
+                } else if (data.error === 'Email not verified') {
+                    alert(`Your email is not verified. Please verify your email. Verification link: ${data.verificationLink}`);
+                } else {
+                    setErrorMessage(data.error || 'Login failed');
+                }
+                return;
+            }
+
             setShowSuccessPopup(true); // Show the popup
-            props.onLoginSuccess(data.token);
+            props.onLoginSuccess(data.token, data.isAdmin);
             // Store the token in the session storage or state management
 
         } catch (error) {

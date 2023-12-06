@@ -1,6 +1,7 @@
 const express = require('express');
-const User = require('../Schemas/User'); // Adjust the path to your User model
-const Review = require('../Schemas/review'); // Adjust the path to your Review model
+const mongoose = require('mongoose');
+const User = require('./Schemas/User'); // Adjust the path to your User model
+const Review = require('./Schemas/Review'); // Adjust the path to your Review model
 const { verifyToken } = require('./Auth/verifyToken');
 
 
@@ -41,19 +42,19 @@ router.put('/grant-admin/:userId', checkAdmin, async (req, res) => {
     }
 });
 
-router.put('/hide-review/:reviewId', checkAdmin, async (req, res) => {
-    const reviewId = req.params.reviewId;
+router.put('/revoke-admin/:userId', checkAdmin, async (req, res) => {
+    const userId = req.params.userId;
 
     try {
-        const review = await Review.findById(reviewId);
-        if (!review) {
-            return res.status(404).json({ error: 'Review not found' });
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
         }
 
-        review.isVisible = false;
-        await review.save();
+        user.isAdmin = false;
+        await user.save();
 
-        res.json({ message: 'Review hidden successfully', reviewId: review._id });
+        res.json({ message: 'Admin privileges revoked', user: { id: user._id, name: user.name, isAdmin: user.isAdmin } });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
@@ -130,6 +131,27 @@ router.put('/reactivate-user/:userId', checkAdmin, async (req, res) => {
         await user.save();
 
         res.json({ message: 'User account reactivated', userId: user._id });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.get('/users', checkAdmin, async (req, res) => {
+    try {
+        const users = await User.find().select('-passwordHash'); // Exclude passwordHash for security
+        res.json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Route to get all reviews
+router.get('/reviews', checkAdmin, async (req, res) => {
+    try {
+        const reviews = await Review.find();
+        res.json(reviews);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
