@@ -5,6 +5,8 @@ const AdminPanel = () => {
     const [reviewLists, setReviewLists] = useState([]);
     const [selectedUser, setSelectedUser] = useState('');
     const [selectedReview, setSelectedReview] = useState('');
+    const [dmcaRequests, setDmcaRequests] = useState([]);
+    const [selectedDmcaRequest, setSelectedDmcaRequest] = useState('');
     
 
     const handleGrantAdmin = async () => {
@@ -185,6 +187,110 @@ const AdminPanel = () => {
         }
     };
 
+    const fetchDmcaRequests = async () => {
+        try {
+            const response = await fetch('/api/admin/dmca'); // Adjust the API endpoint as needed
+            if (!response.ok) {
+                throw new Error('Failed to fetch DMCA requests');
+            }
+            const data = await response.json();
+            setDmcaRequests(data);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error fetching dmca requests');
+        }
+    };
+
+    const handleApproveDmcaRequest = async () => {
+
+        if (!selectedDmcaRequest) {
+            alert("Please select a DMCA request");
+            return;
+        }
+        const token = localStorage.getItem('token');
+
+    
+        try {
+            const response = await fetch(`/api/admin/dmca/approve/${selectedDmcaRequest}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token                }
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to approve DMCA request');
+            }
+    
+            alert('DMCA request approved successfully');
+            fetchDmcaRequests(); // Refresh the list of DMCA requests
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error approving DMCA request');
+        }
+    };
+
+    const handleDenyDmcaRequest = async () => {
+        if (!selectedDmcaRequest) {
+            alert("Please select a DMCA request");
+            return;
+        }
+        const token = localStorage.getItem('token');
+
+    
+        try {
+            const response = await fetch(`/api/dmca/deny/${selectedDmcaRequest}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                }
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to deny DMCA request');
+            }
+    
+            alert('DMCA request denied successfully');
+            fetchDmcaRequests(); // Refresh the list of DMCA requests
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error denying DMCA request');
+        }
+    };
+
+    const handleDeleteDmcaRequest = async () => {
+        if (!selectedDmcaRequest) {
+            alert("Please select a DMCA request");
+            return;
+        }
+        const token = localStorage.getItem('token');
+
+    
+        if (!window.confirm("Are you sure you want to delete this DMCA request?")) {
+            return; // Stop if the user does not confirm
+        }
+    
+        try {
+            const response = await fetch(`/api/dmca/delete/${selectedDmcaRequest}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token                }
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to delete DMCA request');
+            }
+    
+            alert('DMCA request deleted successfully');
+            fetchDmcaRequests(); // Refresh the list of DMCA requests
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error deleting DMCA request');
+        }
+    };
+    
     useEffect(() => {
         // Fetch users and reviews when the component mounts
         const fetchUsersAndReviews = async () => {
@@ -258,7 +364,26 @@ const AdminPanel = () => {
                 <button onClick={handleHideReview}>Hide Review</button>
                 <button onClick={handleUnhideReview}>Unhide Review</button>
             </div>
+            <div>
+                <h3>DMCA Requests</h3>
+                <div>
+                    <label>DMCA Request:</label>
+                    <select value={selectedDmcaRequest} onChange={e => setSelectedDmcaRequest(e.target.value)}>
+                        <option value="">Select a DMCA Request</option>
+                        {dmcaRequests.map(request => (
+                            <option key={request.requestId} value={request.requestId}>
+                                {request.requestId}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <button onClick={handleApproveDmcaRequest}>Approve</button>
+                <button onClick={handleDenyDmcaRequest}>Deny</button>
+                <button onClick={handleDeleteDmcaRequest}>Delete</button>
+            </div>
         </div>
+
+        
     );
 };
 

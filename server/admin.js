@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const User = require('./Schemas/User'); // Adjust the path to your User model
 const Review = require('./Schemas/Review'); // Adjust the path to your Review model
 const { verifyToken } = require('./Auth/verifyToken');
+const DMCARequest = require('./Schemas/DMCA');
 
 
 const router = express.Router();
@@ -152,6 +153,63 @@ router.get('/reviews', checkAdmin, async (req, res) => {
     try {
         const reviews = await Review.find();
         res.json(reviews);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.get('/dmca', checkAdmin, async (req, res) => {
+    try {
+        const dmcaRequests = await DMCARequest.find(); // Assuming DMCARequest is your Mongoose model
+        res.json(dmcaRequests);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.put('/dmca/approve/:requestId', checkAdmin, async (req, res) => {
+    try {
+        const dmcaRequest = await DMCARequest.findOneAndUpdate(
+            { requestId: req.params.requestId },
+            { status: 'Approved' }, // Assuming 'Approved' is a valid status
+            { new: true }
+        );
+        if (!dmcaRequest) {
+            return res.status(404).json({ error: 'DMCA request not found' });
+        }
+        res.json({ message: 'DMCA request approved', dmcaRequest });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.put('/dmca/deny/:requestId', checkAdmin, async (req, res) => {
+    try {
+        const dmcaRequest = await DMCARequest.findOneAndUpdate(
+            { requestId: req.params.requestId },
+            { status: 'Denied' }, // Assuming 'Denied' is a valid status
+            { new: true }
+        );
+        if (!dmcaRequest) {
+            return res.status(404).json({ error: 'DMCA request not found' });
+        }
+        res.json({ message: 'DMCA request denied', dmcaRequest });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.delete('/dmca/delete/:requestId', checkAdmin, async (req, res) => {
+    try {
+        const dmcaRequest = await DMCARequest.findOneAndDelete({ requestId: req.params.requestId });
+        if (!dmcaRequest) {
+            return res.status(404).json({ error: 'DMCA request not found' });
+        }
+        res.json({ message: 'DMCA request deleted' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });

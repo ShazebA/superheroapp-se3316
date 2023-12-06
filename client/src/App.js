@@ -8,6 +8,7 @@ import SuperheroApp from './SuperheroApp';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import AdminPanel from './Admin';
 import { Modal, Tab, Tabs, Button } from 'react-bootstrap';
+import Footer from './Footer';
 
 
 
@@ -91,7 +92,10 @@ return (
               </Modal>
             </>
           )}
+        <Footer />
+
         </div>
+
       );
     }
     
