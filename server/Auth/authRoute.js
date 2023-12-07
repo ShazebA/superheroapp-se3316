@@ -35,7 +35,6 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-// Password hash middleware.
 userSchema.pre('save', async function(next) {
     if (!this.isModified('passwordHash')) return next();
 
@@ -43,7 +42,6 @@ userSchema.pre('save', async function(next) {
     next();
 });
 
-// Helper method to check the password.
 userSchema.methods.checkPassword = async function(password) {
     return await bcrypt.compare(password, this.passwordHash);
 };
@@ -52,8 +50,7 @@ const User = mongoose.model('Superhero', userSchema, "Users");
 
 const router = express.Router();
 
-const JWTsecret = "shazzy"; // Replace JWTsecret with your secret key
-
+const JWTsecret = "shazzy"; 
 mongoose.connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -61,7 +58,6 @@ mongoose.connect(mongoURI, {
     .catch(err => console.error('Could not connect to MongoDB', err));
   
 
-// Login endpoint
 router.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -76,9 +72,9 @@ router.post('/api/login', async (req, res) => {
         }
 
         if (!user.isEmailVerified) {
-            // Generate a new verification token
             const verificationToken = jwt.sign({ userId: user._id }, JWTsecret, { expiresIn: '1h' });
-            const verificationLink = `http://localhost:5000/api/verifyEmail?token=${verificationToken}`; // Adjust the base URL as needed
+            const baseUrl = process.env.BASE_URL || 'http://localhost:5000'; 
+            const verificationLink = `${baseUrl}/api/verifyEmail?token=${verificationToken}`;
 
             return res.status(403).json({ 
                 error: 'Email not verified', 
@@ -86,7 +82,7 @@ router.post('/api/login', async (req, res) => {
             });
         }
 
-        const token = jwt.sign({ userId: user._id, isAdmin: user.isAdmin }, JWTsecret); // Replace JWTsecret with your secret key
+        const token = jwt.sign({ userId: user._id, isAdmin: user.isAdmin }, JWTsecret); 
         res.json({ token, isAdmin: user.isAdmin });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
@@ -106,15 +102,13 @@ router.post('/api/register', [
             return res.status(400).json({ error: "Email already in use" });
         }
 
-        // Create a new user
         const newUser = new User({ email, passwordHash: password, name });
         await newUser.save();
 
-        // Generate a unique verification token
-        const verificationToken = jwt.sign({ userId: newUser._id }, JWTsecret, { expiresIn: '1d' }); // Replace JWTsecret with your secret key
+        const verificationToken = jwt.sign({ userId: newUser._id }, JWTsecret, { expiresIn: '1d' }); 
 
-        // Instead of sending an email, return the verification link
-        const verificationLink = `http://localhost:5000/api/verifyEmail?token=${verificationToken}`; // Adjust the base URL as needed
+        const baseUrl = process.env.BASE_URL || 'http://localhost:5000'; 
+        const verificationLink = `${baseUrl}/api/verifyEmail?token=${verificationToken}`;
 
         res.status(201).json({ message: "User registered successfully", verificationLink });
     } catch (error) {
@@ -131,16 +125,16 @@ const verifyToken = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, JWTsecret); // Replace JWTsecret with your secret key
+        const decoded = jwt.verify(token, JWTsecret); 
         req.user = decoded;
         next();
     } catch (error) {
         res.status(401).json({ error: 'Invalid token' });
     }
 };
-// Password update endpoint
+
 router.put('/api/updatePassword', verifyToken, async (req, res) => {
-    const userId = req.user.userId; // Assuming verifyToken adds user info to req
+    const userId = req.user.userId; 
     const { newPassword } = req.body;
 
     try {
@@ -159,13 +153,11 @@ router.put('/api/updatePassword', verifyToken, async (req, res) => {
 });
 
 
-// Email verification endpoint
 router.get('/api/verifyEmail', async (req, res) => {
     const { token } = req.query;
 
     try {
-        const decoded = jwt.verify(token, JWTsecret); // Replace JWTsecret with your secret key
-        const user = await User.findById(decoded.userId);
+        const decoded = jwt.verify(token, JWTsecret);
 
         if (!user) {
             return res.status(404).json({ error: "User not found" });

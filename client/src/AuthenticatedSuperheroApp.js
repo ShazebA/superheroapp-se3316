@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import './StyleSheet.css'; // Adjust the path as necessary
+import './StyleSheet.css'; 
 
 const AuthenticatedSuperheroApp = (props) => {
-    // State variables for input fields and data
+    
     const [name, setName] = useState('');
     const [race, setRace] = useState('');
     const [publisher, setPublisher] = useState('');
     const [powers, setPowers] = useState('');
     const [numberOfResults, setNumberOfResults] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [viewMore, setViewMore] = useState(null); // New state for tracking expanded hero details
+    const [viewMore, setViewMore] = useState(null); 
     const [newListName, setNewListName] = useState('');
     const [newListDescription, setNewListDescription] = useState('');
     const [isPublic, setIsPublic] = useState(false);
@@ -21,14 +21,14 @@ const AuthenticatedSuperheroApp = (props) => {
     const [reviewListName, setReviewListName] = useState('');
     const [reviewRating, setReviewRating] = useState(1);
     const [reviewComment, setReviewComment] = useState('');
-    const [viewMoreListId, setViewMoreListId] = useState(null); // State for tracking expanded list details
-    const [heroDetails, setHeroDetails] = useState({}); // To store hero details for each list
+    const [viewMoreListId, setViewMoreListId] = useState(null); 
+    const [heroDetails, setHeroDetails] = useState({}); 
     const [newListHeroes, setNewListHeroes] = useState('');
     const [editListHeroes, setEditListHeroes] = useState('');
     const [createListError, setCreateListError] = useState('');
     const [editListError, setEditListError] = useState('');
     const [publicLists, setPublicLists] = useState([]);
-    const [expandedListDetails, setExpandedListDetails] = useState({}); // Store expanded list details
+    const [expandedListDetails, setExpandedListDetails] = useState({}); 
 
 
 
@@ -38,32 +38,32 @@ const AuthenticatedSuperheroApp = (props) => {
 
 
 
-    // Helper functions
+    
     const validateInput = (input) => {
         return input && input.trim().length > 0;
     };
 
 
-    // Function to search Superheroes
+    
     function searchSuperheroes() {
         const nameQuery = document.getElementById('name').value;
         const raceQuery = document.getElementById('race').value;
         const publisherQuery = document.getElementById('publisher').value;
         const powersQuery = document.getElementById('powers').value;
-        const nResults = document.getElementById('numberOfResults').value; // Assume this is the new HTML input for 'n'
-        const sortCriteria = document.getElementById('sortCriteria').value; // New input for sorting criteria
+        const nResults = document.getElementById('numberOfResults').value; 
+        const sortCriteria = document.getElementById('sortCriteria').value; 
     
         if (!validateInput(nameQuery) && !validateInput(raceQuery) && !validateInput(publisherQuery) && !validateInput(powersQuery)) {
             console.error('Invalid search parameters');
             return;
         }
-        // Make an asynchronous request to the backend
+        
     
         let queryParams = `name=${encodeURIComponent(nameQuery)}&race=${encodeURIComponent(raceQuery)}&publisher=${encodeURIComponent(publisherQuery)}&powers=${encodeURIComponent(powersQuery)}`;
         if (nResults) {
             queryParams += `&n=${encodeURIComponent(nResults)}`;
         }
-        if (sortCriteria) { // Append sort criteria if provided
+        if (sortCriteria) { 
             queryParams += `&sort=${encodeURIComponent(sortCriteria)}`;
         }
     
@@ -75,8 +75,8 @@ const AuthenticatedSuperheroApp = (props) => {
             }
             return response.json();})
             .then(data => {
-                setSearchResults(data); // Save the fetched data in state
-                setViewMore(null); // Reset the view more state
+                setSearchResults(data); 
+                setViewMore(null); 
             })
             .catch(error => {   
                 console.error('Error:', error);
@@ -93,19 +93,19 @@ const AuthenticatedSuperheroApp = (props) => {
     function searchFromDuckDuckGo(heroName, publisher) {
         const query = encodeURIComponent(`${heroName} ${publisher}`);
         const url = `https://duckduckgo.com/?q=${query}`;
-        window.open(url, '_blank'); // Open in a new tab
+        window.open(url, '_blank'); 
     }
 
     const handleCreateList = async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token'); // Get the auth token
+        const token = localStorage.getItem('token'); 
         const heroIds = newListHeroes.split(',')
         .map(id => id.trim())
         .filter(id => id !== '' && !isNaN(id) && parseInt(id) >= MIN_HERO_ID && parseInt(id) <= MAX_HERO_ID);
 
         if (heroIds.length !== newListHeroes.split(',').filter(id => id.trim() !== '').length) {
             console.error('One or more hero IDs are invalid');
-            // Handle the error appropriately, such as displaying a message to the user
+            
             return;
         }
 
@@ -114,7 +114,7 @@ const AuthenticatedSuperheroApp = (props) => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': token // Include the token in the request header
+                    'Authorization': token 
                 },
                 body: JSON.stringify({
                     name: newListName,
@@ -133,12 +133,12 @@ const AuthenticatedSuperheroApp = (props) => {
 
             setUserLists(prevLists => [...prevLists, data]);
 
-            // Optionally, clear the form or update the state
+            
             setNewListName('');
             setNewListDescription('');
             setIsPublic(false);
             setNewListHeroes('');
-            // You might also want to refresh the list of user's lists here
+            
 
         } catch (error) {
             console.error('Error:', error);
@@ -146,13 +146,13 @@ const AuthenticatedSuperheroApp = (props) => {
     };
 
     const fetchUserLists = async () => {
-        const token = localStorage.getItem('token'); // Get the auth token
+        const token = localStorage.getItem('token'); 
 
         try {
             const response = await fetch('/api/authenticated/my-lists', {
                 method: 'GET',
                 headers: {
-                    'Authorization': token // Include the token in the request header
+                    'Authorization': token 
                 }
             });
 
@@ -182,7 +182,7 @@ const AuthenticatedSuperheroApp = (props) => {
 
     const expandList = async (listId) => {
         if (expandedListDetails[listId]) {
-            // If already expanded, collapse it
+            
             setExpandedListDetails(prev => ({ ...prev, [listId]: null }));
             return;
         }
@@ -218,7 +218,7 @@ const AuthenticatedSuperheroApp = (props) => {
 
         if (heroIds.length !== editListHeroes.split(',').filter(id => id.trim() !== '').length) {
             console.error('One or more hero IDs are invalid');
-            // Handle the error appropriately, such as displaying a message to the user
+            
             return;
         }
 
@@ -241,9 +241,9 @@ const AuthenticatedSuperheroApp = (props) => {
                 throw new Error('Network response was not ok');
             }
 
-            // Refresh the lists to show the updated list
+            
             await fetchUserLists();
-            setSelectedList(null); // Optionally, clear the selection
+            setSelectedList(null); 
         } catch (error) {
             console.error('Error:', error);
         }
@@ -252,7 +252,7 @@ const AuthenticatedSuperheroApp = (props) => {
     const handleDeleteList = async (listId) => {
         const confirmDelete = window.confirm('Are you sure you want to delete this list?');
         if (!confirmDelete) {
-            return; // Do nothing if user cancels the deletion
+            return; 
         }
 
         const token = localStorage.getItem('token');
@@ -269,7 +269,7 @@ const AuthenticatedSuperheroApp = (props) => {
                 throw new Error('Network response was not ok');
             }
 
-            // Refresh the lists to reflect the deletion
+            
             await fetchUserLists();
         } catch (error) {
             console.error('Error:', error);
@@ -301,7 +301,7 @@ const AuthenticatedSuperheroApp = (props) => {
             const data = await response.json();
             console.log('Review added:', data);
 
-            // Optionally, clear the form or update the state
+            
             setReviewListName('');
             setReviewRating(1);
             setReviewComment('');
@@ -337,7 +337,7 @@ const AuthenticatedSuperheroApp = (props) => {
         } else {
             setViewMoreListId(listId);
             if (!heroDetails[listId]) {
-                fetchHeroDetails(listId); // Fetch details if not already loaded
+                fetchHeroDetails(listId); 
             }
         }
     };
@@ -353,14 +353,14 @@ const AuthenticatedSuperheroApp = (props) => {
 
 
     const handleViewMoreClick = (heroId) => {
-        setViewMore(viewMore === heroId ? null : heroId); // Toggle view more state
+        setViewMore(viewMore === heroId ? null : heroId); 
     };
 
     const handleLogout = () => {
-        // Clear the token from storage
-        localStorage.removeItem('token'); // Or sessionStorage.removeItem('token');
+        
+        localStorage.removeItem('token'); 
 
-        // Call the logout handler passed from the parent component (App.js)
+        
         if (props.onLogout) {
             props.onLogout();
         }
@@ -372,7 +372,6 @@ const AuthenticatedSuperheroApp = (props) => {
             <div className="logout-button-container">
                 <button onClick={handleLogout}>Logout</button>
             </div>
-            {/* Search form */}
             <div className="search-section">
                 <label className="search-label" htmlFor="name">Name:</label>
                 <input className="search-input" type="text" id="name" name="name" value={name} onChange={e => setName(e.target.value)} />
@@ -393,7 +392,6 @@ const AuthenticatedSuperheroApp = (props) => {
             </div>
 
     
-            {/* Display Search Results */}
             <div className="results-section">                
                 <button id="clearSearch" onClick={clearSearch}>Clear</button>
                 <div id="results">
@@ -473,7 +471,6 @@ const AuthenticatedSuperheroApp = (props) => {
                                                 <p>Publisher: {hero.Publisher}</p>
                                                 {viewMore === hero.id && (
                                                     <div>
-                                                        {/* All other hero details */}
                                                         <p>HeroID: {hero.id}</p>
                                                         <p>Gender: {hero.Gender}</p>
                                                         <p>Eye color: {hero["Eye color"]}</p>
@@ -530,7 +527,6 @@ const AuthenticatedSuperheroApp = (props) => {
                 )}
             </div>
 
-            {/* Display user's lists with an option to select for editing */}
             <div>
                 <h2>My Lists</h2>
                 <ul>
@@ -594,7 +590,6 @@ const AuthenticatedSuperheroApp = (props) => {
                                             <p>Publisher: {hero.Publisher}</p>
                                             {viewMore === hero.id && (
                                                 <div>
-                                                    {/* All other hero details */}
                                                     <p>HeroID: {hero.id}</p>
                                                     <p>Gender: {hero.Gender}</p>
                                                     <p>Eye color: {hero["Eye color"]}</p>

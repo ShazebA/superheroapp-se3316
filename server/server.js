@@ -10,6 +10,7 @@ const { MongoClient } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const router = require('./Auth/authRoute.js'); 
 const stringSimilarity = require('string-similarity');
+require('dotenv').config();
 
 
 
@@ -25,7 +26,7 @@ app.use(cors());
 
 
 const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000, 
     max: 100
 });
 app.use('/api/', apiLimiter);
@@ -64,7 +65,6 @@ app.use('/api', dmcaRouter);
 
 const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-// Connect to MongoDB
 async function connectToMongo() {
     try {
         await client.connect();
@@ -97,7 +97,6 @@ app.get('/superhero/search', [
         const normalizeString = (str) => str.replace(/\s+/g, '').toLowerCase();
 
         
-        // Build the query for MongoDB
         let query = {};
         if (req.query.name) {
             const normalizedInputName = normalizeString(req.query.name);
@@ -124,39 +123,32 @@ app.get('/superhero/search', [
             };
         }
 
-        // Find the superheroes based on the query
         let matchedHeroes = await superheroCollection.find(query).toArray();
 
-        // If powers are part of the search criteria, filter the results
         if (req.query.powers) {
             const powersQuery = req.query.powers.toLowerCase().split(',');
             matchedHeroes = await Promise.all(matchedHeroes.filter(async (hero) => {
                 const heroPowersEntry = await superheroPowerCollection.findOne({ hero_names: hero.name });
         
-                // Check if each power in the powersQuery array is set to true in the hero's power data
                 return heroPowersEntry && powersQuery.every(pq => heroPowersEntry[pq] === "True");
             }));
         }
         
-        // Limit the results if 'n' is specified
         if (req.query.n) {
             matchedHeroes = matchedHeroes.slice(0, req.query.n);
         }
 
-        // Map through heroes to append their powers
         matchedHeroes = await Promise.all(matchedHeroes.map(async (hero) => {
             const heroPowersEntry = await superheroPowerCollection.findOne({ hero_names: hero.name });
         
-            // Append only powers that are set to true
             hero.powers = heroPowersEntry ? Object.entries(heroPowersEntry)
-                .filter(([key, value]) => key !== 'hero_names' && value === 'True') // Only include powers where the value is true
+                .filter(([key, value]) => key !== 'hero_names' && value === 'True') 
                 .map(([key, _]) => key) : [];
             
             return hero;
         }));
         
 
-        // Return the search results
         res.json(matchedHeroes);
     } catch (error) {
         console.error(error);

@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const List = require('./Schemas/List'); // Import List model
-const Review = require('./Schemas/Review'); // Import Review model
+const List = require('./Schemas/List'); 
+const Review = require('./Schemas/Review'); 
 const { MongoClient } = require('mongodb');
 const Users = require('./Schemas/User');
 const router = express.Router();
@@ -19,16 +19,16 @@ async function calculateAverageRating(listName) {
     if (reviews.length === 0) return 0;
     
     const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
-    return (totalRating / reviews.length).toFixed(2); // Rounds to 2 decimal places
+    return (totalRating / reviews.length).toFixed(2); 
     }
 
 async function findReviewsForList(listName) {
     try {
         const reviews = await Review.find({ listName: listName });
-        return reviews; // This is an array of reviews
+        return reviews; 
     } catch (error) {
         console.error('Error fetching reviews:', error);
-        return []; // Return an empty array in case of an error
+        return []; 
     }
 }
     
@@ -39,19 +39,19 @@ router.get('/public-lists', async (req, res) => {
         .limit(10)
         .populate({
             path: 'listOwner',
-            select: 'name -_id', // Select only the 'name' field and exclude the '_id' field
+            select: 'name -_id', 
         });
     
-        // Using Promise.all to wait for all async operations to complete
+        
         const listsWithDetails = await Promise.all(publicLists.map(async list => {
             const averageRating = await calculateAverageRating(list.name);
             const reviews = await Review.find({ listName: list.name, isVisible: true })
-                    .select('rating comment userName creationDate -_id'); // Select desired fields
+                    .select('rating comment userName creationDate -_id'); 
 
             return {
                 id: list._id,
                 name: list.name,
-                creatorNickname: list.listOwner.name, // Using the 'name' field from the User document
+                creatorNickname: list.listOwner.name, 
                 numberOfHeroes: list.items.length,
                 averageRating: averageRating,
                 lastModified: list.lastModified,
@@ -69,7 +69,7 @@ router.get('/public-lists', async (req, res) => {
 router.get('/public-lists/:listId', async (req, res) => {
     const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-    // Connect to MongoDB
+    
     async function connectToMongo() {
         try {
             await client.connect();
@@ -84,13 +84,13 @@ router.get('/public-lists/:listId', async (req, res) => {
     const listId = req.params.listId;
 
     try {
-        // Fetch the specific public list
+        
         const list = await List.findById(listId);
         if (!list || !list.isPublic) {
             return res.status(404).json({ error: "List not found or list is not public" });
         }
 
-        // Fetch heroes details in the list
+        
         const database = client.db('test');
         const superheroesCollection = database.collection('Superhero_collection');
         const powersCollection = database.collection('Superhero_power_collection');
@@ -101,13 +101,13 @@ router.get('/public-lists/:listId', async (req, res) => {
             const powers = await powersCollection.findOne({ hero_names: hero.name });
             hero.powers = powers ? Object.keys(powers).filter(power => powers[power] === "True") : [];
         }
-        // Construct the expanded list information
+        
         const expandedListInfo = {
             id: list._id,
             name: list.name,
             creatorNickname: list.listOwner.name, 
             description: list.description,
-            heroes: heroesInList, // Array of heroes details
+            heroes: heroesInList, 
             numberOfHeroes: list.items.length,
         };
 

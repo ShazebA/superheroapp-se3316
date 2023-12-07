@@ -189,7 +189,7 @@ const AdminPanel = () => {
 
     const fetchDmcaRequests = async () => {
         try {
-            const response = await fetch('/api/admin/dmca'); // Adjust the API endpoint as needed
+            const response = await fetch('/api/admin/dmca'); 
             if (!response.ok) {
                 throw new Error('Failed to fetch DMCA requests');
             }
@@ -223,7 +223,7 @@ const AdminPanel = () => {
             }
     
             alert('DMCA request approved successfully');
-            fetchDmcaRequests(); // Refresh the list of DMCA requests
+            fetchDmcaRequests(); 
         } catch (error) {
             console.error('Error:', error);
             alert('Error approving DMCA request');
@@ -252,7 +252,7 @@ const AdminPanel = () => {
             }
     
             alert('DMCA request denied successfully');
-            fetchDmcaRequests(); // Refresh the list of DMCA requests
+            fetchDmcaRequests(); 
         } catch (error) {
             console.error('Error:', error);
             alert('Error denying DMCA request');
@@ -268,7 +268,7 @@ const AdminPanel = () => {
 
     
         if (!window.confirm("Are you sure you want to delete this DMCA request?")) {
-            return; // Stop if the user does not confirm
+            return; 
         }
     
         try {
@@ -284,7 +284,7 @@ const AdminPanel = () => {
             }
     
             alert('DMCA request deleted successfully');
-            fetchDmcaRequests(); // Refresh the list of DMCA requests
+            fetchDmcaRequests(); 
         } catch (error) {
             console.error('Error:', error);
             alert('Error deleting DMCA request');
@@ -292,7 +292,7 @@ const AdminPanel = () => {
     };
     
     useEffect(() => {
-        // Fetch users and reviews when the component mounts
+        
         const fetchUsersAndReviews = async () => {
             try {
                 const token = localStorage.getItem('token');

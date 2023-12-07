@@ -2,8 +2,8 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
-const List = require('./Schemas/List'); // Import List model
-const Review = require('./Schemas/Review'); // Import Review model
+const List = require('./Schemas/List'); 
+const Review = require('./Schemas/Review'); 
 const { verifyToken } = require('./Auth/verifyToken');
 const { MongoClient } = require('mongodb');
 const Users = require('./Schemas/User');
@@ -34,20 +34,20 @@ mongoose.connect(mongoURI, {
 
     try {
         const { name, description, isPublic, items } = req.body;
-        const listOwner = req.user.userId; // Assuming the user ID is stored in req.user
+        const listOwner = req.user.userId; 
 
         const listCount = await List.countDocuments({ listOwner });
         if (listCount >= 20) {
             return res.status(400).json({ error: 'Maximum number of lists (20) reached' });
         }
 
-        // Check if a list with the same name already exists for the user
+        
         const existingList = await List.findOne({ name, listOwner });
         if (existingList) {
             return res.status(400).json({ error: 'A list with this name already exists' });
         }
 
-        // Create and save the new list
+        
         const newList = new List({
             name,
             items, 
@@ -63,14 +63,14 @@ mongoose.connect(mongoURI, {
     }
 });
 }
-    // Inside authenticatedUsers.js
+    
 
-// Route to view all lists created by the user
+
 router.get('/my-lists', async (req, res) => {
     try {
-        const listOwner = req.user.userId; // Assuming the user ID is stored in req.user
+        const listOwner = req.user.userId; 
 
-        // Fetch all lists created by the user
+        
         const userLists = await List.find({ listOwner });
 
         res.status(200).json(userLists);
@@ -93,9 +93,9 @@ router.put('/edit-list/:listId', [
     try {
         const listId = req.params.listId;
         const { name, description, isPublic, items } = req.body;
-        const listOwner = req.user.userId; // Assuming the user ID is stored in req.user
+        const listOwner = req.user.userId; 
 
-        // Fetch the list and check ownership
+        
         const list = await List.findById(listId);
         if (!list) {
             return res.status(404).json({ error: 'List not found' });
@@ -104,11 +104,11 @@ router.put('/edit-list/:listId', [
             return res.status(403).json({ error: 'Not authorized to edit this list' });
         }
 
-        // Update the list
+        
         if (name) list.name = name;
         if (description !== undefined) list.description = description;
         if (isPublic !== undefined) list.isPublic = isPublic;
-        if (items !== undefined) list.items = items; // Assuming items is an array of numbers
+        if (items !== undefined) list.items = items; 
 
         await list.save();
         res.status(200).json(list);
@@ -117,15 +117,15 @@ router.put('/edit-list/:listId', [
     }
 });
 
-// Inside authenticatedUsers.js
 
-// Route to delete a list
+
+
 router.delete('/delete-list/:listId', async (req, res) => {
     try {
         const listId = req.params.listId;
-        const listOwner = req.user.userId; // Assuming the user ID is stored in req.user
+        const listOwner = req.user.userId; 
 
-        // Fetch the list and check ownership
+        
         const list = await List.findById(listId);
         if (!list) {
             return res.status(404).json({ error: 'List not found' });
@@ -134,7 +134,7 @@ router.delete('/delete-list/:listId', async (req, res) => {
             return res.status(403).json({ error: 'Not authorized to delete this list' });
         }
 
-        // Delete the list
+        
         await list.remove();
         res.status(200).json({ message: 'List successfully deleted' });
     } catch (error) {
@@ -142,9 +142,9 @@ router.delete('/delete-list/:listId', async (req, res) => {
     }
 });
 
-// Inside authenticatedUsers.js
 
-// Route to add a review to a list
+
+
 router.post('/add-review', [
     body('listName').not().isEmpty().trim().withMessage('List name is required'),
     body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
@@ -157,20 +157,20 @@ router.post('/add-review', [
 
     try {
         const { listName, rating, comment } = req.body;
-        const userId = req.user.userId; // Assuming the user's email is stored in req.user
+        const userId = req.user.userId; 
 
         const user = await Users.findById(userId).select('name');
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        // Create and save the review
+        
         const review = new Review({
             listName,
             rating,
             comment,
             userName: user.name,
-            creationDate: new Date() // Automatically set to the current date
+            creationDate: new Date() 
         });
 
         await review.save();
@@ -183,7 +183,7 @@ router.post('/add-review', [
 router.get('/list-heroes/:listId', async (req, res) => {
     const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-    // Connect to MongoDB
+    
     async function connectToMongo() {
         try {
             await client.connect();
@@ -196,10 +196,10 @@ router.get('/list-heroes/:listId', async (req, res) => {
 
     connectToMongo();
     const listId = req.params.listId;
-    const userId = req.user.userId; // Assuming the user ID is stored in req.user
+    const userId = req.user.userId; 
 
     try {
-        // Get the list and verify ownership
+        
         const list = await List.findById(listId);
         if (!list || !list.listOwner.equals(userId)) {
             return res.status(404).json({ error: "List not found or you do not have permission" });
@@ -210,10 +210,10 @@ router.get('/list-heroes/:listId', async (req, res) => {
         const powersCollection = database.collection('Superhero_power_collection');
 
 
-        // Get the superheroes in the list
+        
         const heroesInList = await superheroesCollection.find({ id: { $in: list.items } }).toArray();
 
-        // Add powers to the heroes
+        
         for (let hero of heroesInList) {
             const powers = await powersCollection.findOne({ hero_names: hero.name });
             hero.powers = powers ? Object.keys(powers).filter(power => powers[power] === "True") : [];

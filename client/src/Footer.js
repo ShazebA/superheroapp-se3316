@@ -13,7 +13,7 @@ const Footer = () => {
     const handleCloseModal = () => setShowModal(false);
 
     const handleDmcaFormSubmit = (formData) => {
-        // Handle form submission here
+        
         console.log(formData);
         handleCloseModal();
     };

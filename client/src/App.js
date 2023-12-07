@@ -15,11 +15,11 @@ import Footer from './Footer';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false); // Track if the user is an admin
+  const [isAdmin, setIsAdmin] = useState(false); 
 
 
   useEffect(() => {
-    // Check for token in localStorage on initial render
+    
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
@@ -31,7 +31,7 @@ function App() {
   };
 
   useEffect(() => {
-    // Check for token and admin status in localStorage on initial render
+    
     const token = localStorage.getItem('token');
     const isAdmin = localStorage.getItem('isAdmin'); 
     if (token) {
@@ -45,10 +45,10 @@ function App() {
     }
   }, []);
 
-  // Function to handle login (this is just an example)
+  
   const handleLoginSuccess = (token) => {
     setIsAuthenticated(true);
-    // Optionally, store the token in localStorage or Context
+    
     localStorage.setItem('token', token);
     localStorage.setItem('isAdmin', isAdmin);
   };

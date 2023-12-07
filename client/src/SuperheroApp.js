@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import './StyleSheet.css'; // Adjust the path as necessary
+import './StyleSheet.css'; 
 
 const SuperheroApp = () => {
-    // State variables for input fields and data
+    
     const [name, setName] = useState('');
     const [race, setRace] = useState('');
     const [publisher, setPublisher] = useState('');
     const [powers, setPowers] = useState('');
     const [numberOfResults, setNumberOfResults] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [viewMore, setViewMore] = useState(null); // New state for tracking expanded hero details
+    const [viewMore, setViewMore] = useState(null); 
     const [publicLists, setPublicLists] = useState([]);
-    const [expandedListDetails, setExpandedListDetails] = useState({}); // Store expanded list details
-    const [viewMoreHeros, setViewMoreHeroes] = useState(null); // New state for tracking expanded hero details
+    const [expandedListDetails, setExpandedListDetails] = useState({}); 
+    const [viewMoreHeros, setViewMoreHeroes] = useState(null); 
 
     
     const handleViewMoreHeroesClick = (heroId) => {
-        setViewMoreHeroes(viewMoreHeros === heroId ? null : heroId); // Toggle view more state
+        setViewMoreHeroes(viewMoreHeros === heroId ? null : heroId); 
     };
 
-    // Helper functions
+    
     const validateInput = (input) => {
         return input && input.trim().length > 0;
     };
@@ -35,26 +35,26 @@ const SuperheroApp = () => {
         fetchPublicLists();
     }, []);
 
-    // Function to search Superheroes
+    
     function searchSuperheroes() {
         const nameQuery = document.getElementById('name').value;
         const raceQuery = document.getElementById('race').value;
         const publisherQuery = document.getElementById('publisher').value;
         const powersQuery = document.getElementById('powers').value;
-        const nResults = document.getElementById('numberOfResults').value; // Assume this is the new HTML input for 'n'
-        const sortCriteria = document.getElementById('sortCriteria').value; // New input for sorting criteria
+        const nResults = document.getElementById('numberOfResults').value; 
+        const sortCriteria = document.getElementById('sortCriteria').value; 
     
         if (!validateInput(nameQuery) && !validateInput(raceQuery) && !validateInput(publisherQuery) && !validateInput(powersQuery)) {
             console.error('Invalid search parameters');
             return;
         }
-        // Make an asynchronous request to the backend
+        
     
         let queryParams = `name=${encodeURIComponent(nameQuery)}&race=${encodeURIComponent(raceQuery)}&publisher=${encodeURIComponent(publisherQuery)}&powers=${encodeURIComponent(powersQuery)}`;
         if (nResults) {
             queryParams += `&n=${encodeURIComponent(nResults)}`;
         }
-        if (sortCriteria) { // Append sort criteria if provided
+        if (sortCriteria) { 
             queryParams += `&sort=${encodeURIComponent(sortCriteria)}`;
         }
     
@@ -66,8 +66,8 @@ const SuperheroApp = () => {
             }
             return response.json();})
             .then(data => {
-                setSearchResults(data); // Save the fetched data in state
-                setViewMore(null); // Reset the view more state
+                setSearchResults(data); 
+                setViewMore(null); 
                 
             })
             .catch(error => {   
@@ -83,7 +83,7 @@ const SuperheroApp = () => {
     function searchFromDuckDuckGo(heroName, publisher) {
         const query = encodeURIComponent(`${heroName} ${publisher}`);
         const url = `https://duckduckgo.com/?q=${query}`;
-        window.open(url, '_blank'); // Open in a new tab
+        window.open(url, '_blank'); 
     }
 
     const fetchPublicLists = async () => {
@@ -101,7 +101,7 @@ const SuperheroApp = () => {
 
     const expandList = async (listId) => {
         if (expandedListDetails[listId]) {
-            // If already expanded, collapse it
+            
             setExpandedListDetails(prev => ({ ...prev, [listId]: null }));
             return;
         }
@@ -120,7 +120,7 @@ const SuperheroApp = () => {
 
 
     const handleViewMoreClick = (heroId) => {
-        setViewMore(viewMore === heroId ? null : heroId); // Toggle view more state
+        setViewMore(viewMore === heroId ? null : heroId); 
     };
 
 

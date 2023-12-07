@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const User = require('./Schemas/User'); // Adjust the path to your User model
-const Review = require('./Schemas/Review'); // Adjust the path to your Review model
+const User = require('./Schemas/User'); 
+const Review = require('./Schemas/Review');
 const { verifyToken } = require('./Auth/verifyToken');
 const DMCARequest = require('./Schemas/DMCA');
 
@@ -140,7 +140,7 @@ router.put('/reactivate-user/:userId', checkAdmin, async (req, res) => {
 
 router.get('/users', checkAdmin, async (req, res) => {
     try {
-        const users = await User.find().select('-passwordHash'); // Exclude passwordHash for security
+        const users = await User.find().select('-passwordHash');
         res.json(users);
     } catch (error) {
         console.error(error);
@@ -148,7 +148,6 @@ router.get('/users', checkAdmin, async (req, res) => {
     }
 });
 
-// Route to get all reviews
 router.get('/reviews', checkAdmin, async (req, res) => {
     try {
         const reviews = await Review.find();
@@ -161,7 +160,7 @@ router.get('/reviews', checkAdmin, async (req, res) => {
 
 router.get('/dmca', checkAdmin, async (req, res) => {
     try {
-        const dmcaRequests = await DMCARequest.find(); // Assuming DMCARequest is your Mongoose model
+        const dmcaRequests = await DMCARequest.find(); 
         res.json(dmcaRequests);
     } catch (error) {
         console.error(error);
@@ -173,7 +172,7 @@ router.put('/dmca/approve/:requestId', checkAdmin, async (req, res) => {
     try {
         const dmcaRequest = await DMCARequest.findOneAndUpdate(
             { requestId: req.params.requestId },
-            { status: 'Approved' }, // Assuming 'Approved' is a valid status
+            { status: 'Approved' }, 
             { new: true }
         );
         if (!dmcaRequest) {
@@ -190,7 +189,7 @@ router.put('/dmca/deny/:requestId', checkAdmin, async (req, res) => {
     try {
         const dmcaRequest = await DMCARequest.findOneAndUpdate(
             { requestId: req.params.requestId },
-            { status: 'Denied' }, // Assuming 'Denied' is a valid status
+            { status: 'Denied' }, 
             { new: true }
         );
         if (!dmcaRequest) {
