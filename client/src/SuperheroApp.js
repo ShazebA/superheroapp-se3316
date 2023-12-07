@@ -143,7 +143,7 @@ const SuperheroApp = () => {
                 <label className="search-label" htmlFor="numberOfResults">Number of Results:</label>
                 <input type="number" id="numberOfResults" name="numberOfResults" placeholder="Enter number of results (n)" value={numberOfResults} onChange={e => setNumberOfResults(e.target.value)} />
     
-                <button id="searchSuperheroes" onClick={searchSuperheroes}>Search</button>
+                <button id="searchSuperheroes" className='searchButton' onClick={searchSuperheroes}>Search</button>
             </div>
     
             <div className="results-section">

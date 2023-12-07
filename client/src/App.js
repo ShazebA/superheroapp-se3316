@@ -60,7 +60,7 @@ function App() {
   };
 
 return (
-  <div>
+  <div className='App'>
 
       {isAuthenticated && (
         <div className="welcome-message">

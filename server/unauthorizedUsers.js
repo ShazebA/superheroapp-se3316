@@ -32,7 +32,6 @@ async function findReviewsForList(listName) {
     }
 }
     
-
 router.get('/public-lists', async (req, res) => {
     try {
         const publicLists = await List.find({ isPublic: true })

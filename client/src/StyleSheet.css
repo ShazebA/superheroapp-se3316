@@ -65,3 +65,33 @@ button:hover {
     padding: 5px;
     border-radius: 3px;
 }
+
+/* Style for the search form with inline fields */
+.search-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center; /* Aligns items vertically */
+    gap: 10px; /* Spacing between items */
+  }
+  
+  /* Style for form inputs to fit inline */
+  .search-input{
+    flex-grow: 1; /* Allows each field to grow and use available space */
+    margin: 0; /* Resets any default margin */
+  }
+  
+  /* Style for the search button to fit inline */
+  .searchButton {
+    white-space: nowrap; /* Prevents wrapping of button text */
+    padding: 10px 20px;
+  }
+  
+  @media (max-width: 768px) { /* Adjusts styles for smaller screens */
+    .search-form {
+      flex-direction: column;
+    }
+    .input-field, .button-search {
+      width: 100%; /* Full width on small screens */
+    }
+  }
+  
