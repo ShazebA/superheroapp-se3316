@@ -45,15 +45,19 @@ router.get('/public-lists', async (req, res) => {
     
         // Using Promise.all to wait for all async operations to complete
         const listsWithDetails = await Promise.all(publicLists.map(async list => {
-        const averageRating = await calculateAverageRating(list.name);
-        return {
-            id: list._id,
-            name: list.name,
-            creatorNickname: list.listOwner.name, // Using the 'name' field from the User document
-            numberOfHeroes: list.items.length,
-            averageRating: averageRating,
-            lastModified: list.lastModified
-        };
+            const averageRating = await calculateAverageRating(list.name);
+            const reviews = await Review.find({ listName: list.name, isVisible: true })
+                    .select('rating comment userName creationDate -_id'); // Select desired fields
+
+            return {
+                id: list._id,
+                name: list.name,
+                creatorNickname: list.listOwner.name, // Using the 'name' field from the User document
+                numberOfHeroes: list.items.length,
+                averageRating: averageRating,
+                lastModified: list.lastModified,
+                reviews: reviews,
+            };
         }));
     
         res.json(listsWithDetails);

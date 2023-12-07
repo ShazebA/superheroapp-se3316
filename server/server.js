@@ -9,6 +9,7 @@ const cors = require('cors');
 const { MongoClient } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const router = require('./Auth/authRoute.js'); 
+const stringSimilarity = require('string-similarity');
 
 
 
@@ -76,74 +77,6 @@ async function connectToMongo() {
 
 connectToMongo();
 
-
-app.get('/superheroID/:id',  validate([
-    param('id').isInt({ gt: 0 })
-    ]), async (req, res) => {
-    // Read the superhero_info.json file
-    try {
-        const database = client.db('test');
-        const superheroes = database.collection('Superhero_collection');
-        
-        const heroId = parseInt(req.params.id);
-        const hero = await superheroes.findOne({ id: heroId });
-
-        if (!hero) {
-            return res.status(404).json({ error: "Superhero not found" });
-        }
-        
-        res.json(hero);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-app.get('/superheroPow/:id/powers', [
-    param('id').isInt({ gt: 0 })
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    try {
-        const database = client.db('test');
-        const superheroCollection = database.collection('Superhero_collection');
-        const superheroPowerCollection = database.collection('Superhero_power_collection');
-        
-        const heroId = parseInt(req.params.id);
-        // Find the superhero by ID
-        const hero = await superheroCollection.findOne({ id: heroId });
-
-        if (!hero) {
-            return res.status(404).json({ error: "Superhero not found" });
-        }
-
-        // Find the powers entry for the given superhero
-        const powers = await superheroPowerCollection.findOne({ hero_names: hero.name });
-        
-        if (!powers) {
-            return res.status(404).json({ error: "Powers not found for the superhero" });
-        }
-        
-        // Extract the powers that are marked as true
-        const truePowers = Object.entries(powers)
-            .filter(([key, value]) => key !== 'hero_names' && value === true)
-            .map(([key, _]) => key);
-
-        // Return the hero's name and the true powers
-        return res.json({
-            name: hero.name,
-            powers: truePowers
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-
 app.get('/superhero/search', [
     query('name').optional().isLength({ max: 100 }),
     query('race').optional().isLength({ max: 50 }),
@@ -160,17 +93,35 @@ app.get('/superhero/search', [
         const database = client.db('test');
         const superheroCollection = database.collection('Superhero_collection');
         const superheroPowerCollection = database.collection('Superhero_power_collection');
+
+        const normalizeString = (str) => str.replace(/\s+/g, '').toLowerCase();
+
         
         // Build the query for MongoDB
         let query = {};
         if (req.query.name) {
-            query.name = { $regex: req.query.name, $options: 'i' }; // 'i' for case-insensitive
+            const normalizedInputName = normalizeString(req.query.name);
+            query.name = {
+                $where: function() {
+                    return stringSimilarity.compareTwoStrings(normalizeString(this.name), normalizedInputName) > 0.8;
+                }
+            };
         }
         if (req.query.race) {
-            query.Race = { $regex: req.query.race, $options: 'i' };
+            const normalizedInputRace = normalizeString(req.query.race);
+            query.race = {
+                $where: function() {
+                    return stringSimilarity.compareTwoStrings(normalizeString(this.race), normalizedInputRace) > 0.8;
+                }
+            };
         }
         if (req.query.publisher) {
-            query.Publisher = { $regex: req.query.publisher, $options: 'i' };
+            const normalizedInputPublisher = normalizeString(req.query.publisher);
+            query.publisher = {
+                $where: function() {
+                    return stringSimilarity.compareTwoStrings(normalizeString(this.publisher), normalizedInputPublisher) > 0.8;
+                }
+            };
         }
 
         // Find the superheroes based on the query
@@ -187,25 +138,6 @@ app.get('/superhero/search', [
             }));
         }
         
-
-        // Sort the results if sort criteria is provided
-        if (req.query.sort) {
-            const sortCriteria = req.query.sort.toLowerCase();
-            matchedHeroes.sort((a, b) => {
-                switch (sortCriteria) {
-                    case 'name':
-                    case 'race':
-                    case 'publisher':
-                        return a[sortCriteria].localeCompare(b[sortCriteria]);
-                    case 'powers':
-                        return b.powers.length - a.powers.length;
-                    default:
-                        console.log("Invalid sort criteria provided");
-                        return 0;
-                }
-            });
-        }
-
         // Limit the results if 'n' is specified
         if (req.query.n) {
             matchedHeroes = matchedHeroes.slice(0, req.query.n);
@@ -230,198 +162,6 @@ app.get('/superhero/search', [
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
     }
-});
-
-
-app.get('/publishers', async (req, res) => {
-    try {
-        const database = client.db('test');
-        const superheroCollection = database.collection('Superhero_collection');
-        
-        // Use MongoDB's distinct function to get all unique publishers
-        const publishers = await superheroCollection.distinct('Publisher');
-        
-        // Send the list of publishers as a JSON response
-        res.json(publishers);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-
-app.post('/list', [
-    body('name').isLength({ min: 1, max: 50 })
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-    
-    const { name } = req.body;
-
-    try {
-        const database = client.db('test');
-        const listsCollection = database.collection('Lists_collection'); // Replace with your actual collection name
-
-        // Check if the list name already exists
-        const listExists = await listsCollection.findOne({ name: name });
-        if (listExists) {
-            return res.status(400).json({ error: "List name already exists" });
-        }
-
-        // Create a new list if it does not exist
-        await listsCollection.insertOne({ name: name, items: [] });
-
-        res.json({ message: "List created successfully" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-app.get('/lists', async (req, res) => {
-    try {
-        const database = client.db('test');
-        const listsCollection = database.collection('Lists_collection');
-
-        // Use MongoDB's distinct function to get all unique list names
-        const listNames = await listsCollection.distinct('name');
-        
-        res.json(listNames);
-    } catch (error) {
-        console.error("Error:", error);
-        res.status(500).json({ error: "Internal server error" });
-    }
-});
-
-
-app.put('/list/:name', async (req, res) => {
-    const { name } = req.params;
-    const { ids } = req.body;
-
-    if (!Array.isArray(ids)) {
-        return res.status(400).json({ error: "IDs should be provided as an array" });
-    }
-
-    // Convert the IDs from strings to numbers if they are not already
-    const idNumbers = ids.map(id => typeof id === 'number' ? id : Number(id));
-
-    try {
-        const database = client.db('test');
-        const listsCollection = database.collection('Lists_collection');
-
-        // Check if the list name exists
-        const list = await listsCollection.findOne({ name: name });
-        if (!list) {
-            return res.status(404).json({ error: "List name does not exist" });
-        }
-
-        // Update the list with the new IDs
-        await listsCollection.updateOne(
-            { name: name },
-            { $set: { items: idNumbers } }
-        );
-
-        res.json({ message: "List updated successfully" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-
-
-
-// app.get('/list/:name', (req, res) => {
-//     const { name } = req.params;
-
-//     const lists = JSON.parse(fs.readFileSync('listsDatabase.json', 'utf-8'));
-//     if (!lists[name]) {
-//         return res.status(404).json({ error: "List name does not exist" });
-//     }
-
-//     res.json(lists[name]);
-// });
-
-app.delete('/list/:name', async (req, res) => {
-    const { name } = req.params;
-
-    try {
-        const database = client.db('test');
-        const listsCollection = database.collection('Lists_collection');
-
-        // Check if the list exists before attempting to delete
-        const list = await listsCollection.findOne({ name: name });
-        if (!list) {
-            return res.status(404).json({ error: "List name does not exist" });
-        }
-
-        // Delete the list
-        await listsCollection.deleteOne({ name: name });
-
-        res.json({ message: "List deleted successfully" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-app.get('/list/details/:name', async (req, res) => {
-    const { name } = req.params;
-
-    try {
-        const database = client.db('test');
-        const listsCollection = database.collection('Lists_collection');
-        const superheroesCollection = database.collection('Superhero_collection');
-        const powersCollection = database.collection('Superhero_power_collection');
-
-        // Get the list
-        const list = await listsCollection.findOne({ name: name });
-        if (!list) {
-            return res.status(404).json({ error: "List name does not exist" });
-        }
-
-        // Get the superheroes in the list
-        const heroesInList = await superheroesCollection.find({ id: { $in: list.items } }).toArray();
-        
-        // Add powers to the heroes
-        for (let hero of heroesInList) {
-            const powers = await powersCollection.findOne({ hero_names: hero.name });
-            hero.powers = powers ? Object.keys(powers).filter(power => powers[power] === "True") : [];
-        }
-
-        res.json(heroesInList);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-
-app.get('/list/ids/:name', async (req, res) => {
-    const { name } = req.params;
-
-    try {
-        const database = client.db('test');
-        const listsCollection = database.collection('Lists_collection');
-
-        // Get the list
-        const list = await listsCollection.findOne({ name: name });
-        if (!list) {
-            return res.status(404).json({ error: "List name does not exist" });
-        }
-
-        res.json(list.items);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-
-app.get('/express_backend', (req, res) => { // Line 9
-    res.json({ express: 'YOUR EXPRESS BACKEND IS CONNECTED TO REACT' }); // Line 10
 });
 
 app.get('*', (req, res) => {

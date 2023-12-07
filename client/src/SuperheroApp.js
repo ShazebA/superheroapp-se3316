@@ -19,9 +19,6 @@ const SuperheroApp = () => {
         setViewMoreHeroes(viewMoreHeros === heroId ? null : heroId); // Toggle view more state
     };
 
-    
-
-
     // Helper functions
     const validateInput = (input) => {
         return input && input.trim().length > 0;
@@ -219,8 +216,21 @@ const SuperheroApp = () => {
                                     ))}
                                 </ul>
                                 <div>
-                                    <h3>Reviews</h3>
-                                    
+                                <h3>Reviews</h3>
+                                    {list.reviews.length > 0 ? (
+                                        <ul>
+                                            {list.reviews.map(review => (
+                                                <li key={review.id}>
+                                                    <p>User: {review.userName}</p>
+                                                    <p>Rating: {review.rating}</p>
+                                                    <p>Comment: {review.comment}</p>
+                                                    <p>Date: {new Date(review.creationDate).toLocaleDateString()}</p>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p>No reviews available.</p>
+                                    )}
                                 </div>
                             </div>
                         )}

@@ -6,6 +6,7 @@ const List = require('./Schemas/List'); // Import List model
 const Review = require('./Schemas/Review'); // Import Review model
 const { verifyToken } = require('./Auth/verifyToken');
 const { MongoClient } = require('mongodb');
+const Users = require('./Schemas/User');
 
 
 const router = express.Router();
@@ -156,14 +157,19 @@ router.post('/add-review', [
 
     try {
         const { listName, rating, comment } = req.body;
-        const userName = req.user.email; // Assuming the user's email is stored in req.user
+        const userId = req.user.userId; // Assuming the user's email is stored in req.user
+
+        const user = await Users.findById(userId).select('name');
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
 
         // Create and save the review
         const review = new Review({
             listName,
             rating,
             comment,
-            userName,
+            userName: user.name,
             creationDate: new Date() // Automatically set to the current date
         });
 
