@@ -27,6 +27,10 @@ const AuthenticatedSuperheroApp = (props) => {
     const [editListHeroes, setEditListHeroes] = useState('');
     const [createListError, setCreateListError] = useState('');
     const [editListError, setEditListError] = useState('');
+    const [publicLists, setPublicLists] = useState([]);
+    const [expandedListDetails, setExpandedListDetails] = useState({}); // Store expanded list details
+
+
 
 
     const MIN_HERO_ID = 0;
@@ -162,6 +166,40 @@ const AuthenticatedSuperheroApp = (props) => {
             console.error('Error:', error);
         }
     };
+
+    const fetchPublicLists = async () => {
+        try {
+            const response = await fetch('/api/public-lists');
+            if (!response.ok) {
+                throw new Error('Failed to fetch public lists');
+            }
+            const lists = await response.json();
+            setPublicLists(lists);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    const expandList = async (listId) => {
+        if (expandedListDetails[listId]) {
+            // If already expanded, collapse it
+            setExpandedListDetails(prev => ({ ...prev, [listId]: null }));
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/public-lists/${listId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch list details');
+            }
+            const listInfo = await response.json();
+            setExpandedListDetails(prev => ({ ...prev, [listId]: listInfo }));
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+
 
     const selectListForEditing = (list) => {
         setSelectedList(list);
@@ -307,6 +345,11 @@ const AuthenticatedSuperheroApp = (props) => {
     useEffect(() => {
         fetchUserLists();
     }, []);
+
+    useEffect(() => {
+        fetchPublicLists();
+    }, []);
+
 
 
     const handleViewMoreClick = (heroId) => {
@@ -531,6 +574,67 @@ const AuthenticatedSuperheroApp = (props) => {
             </div>
 
             </div>
+
+            <div className="public-lists-section">
+                <h2>Public Lists</h2>
+                {publicLists.map(list => (
+                    <div key={list.id}>
+                        <h3>{list.name}</h3>
+                        <p>Creator: {list.creatorNickname}</p>
+                        <p>Number of heroes: {list.numberOfHeroes}</p>
+                        <p>Average rating: {list.averageRating}</p>
+                        <button onClick={() => expandList(list.id)}>View More</button>
+                        {expandedListDetails[list.id] && (
+                            <div>
+                                <p>Description: {expandedListDetails[list.id].description}</p>
+                                <ul>
+                                    {expandedListDetails[list.id].heroes.map(hero => (
+                                        <li key={hero.id}>
+                                            <h2>{hero.name}</h2>
+                                            <p>Publisher: {hero.Publisher}</p>
+                                            {viewMore === hero.id && (
+                                                <div>
+                                                    {/* All other hero details */}
+                                                    <p>HeroID: {hero.id}</p>
+                                                    <p>Gender: {hero.Gender}</p>
+                                                    <p>Eye color: {hero["Eye color"]}</p>
+                                                    <p>Race: {hero.Race}</p>
+                                                    <p>Hair color: {hero["Hair color"]}</p>
+                                                    <p>Height: {hero.Height} cm</p>
+                                                    <p>Skin color: {hero["Skin color"]}</p>
+                                                    <p>Alignment: {hero.Alignment}</p>
+                                                    <p>Weight: {hero.Weight} kg</p>
+                                                    <p>Powers: {hero.powers.length > 0 ? hero.powers.join(', ') : 'None'}</p>
+                                                </div>
+                                            )}
+                                            <button onClick={() => handleViewMoreClick(hero.id)}>View More</button>
+                                            <button onClick={() => searchFromDuckDuckGo(hero.name, hero.Publisher)}>Search</button>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div>
+                                <h3>Reviews</h3>
+                                    {list.reviews.length > 0 ? (
+                                        <ul>
+                                            {list.reviews.map(review => (
+                                                <li key={review.id}>
+                                                    <p>User: {review.userName}</p>
+                                                    <p>Rating: {review.rating}</p>
+                                                    <p>Comment: {review.comment}</p>
+                                                    <p>Date: {new Date(review.creationDate).toLocaleDateString()}</p>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p>No reviews available.</p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+
 
         </div>
     );
